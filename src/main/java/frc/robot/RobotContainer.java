@@ -8,8 +8,8 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
-//import frc.robot.subsystems.IntakeSubsystem;
-//import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -27,8 +27,8 @@ public class RobotContainer {
   // private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
   private final SwerveSubsystem m_swerveSubsystem;
-  //private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-  //private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -60,11 +60,11 @@ public class RobotContainer {
     //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
 
     // Intake controls
-    //m_driverController.leftBumper().whileTrue(m_intakeSubsystem.intakeCommand());
-    //m_driverController.rightTrigger().whileTrue(m_intakeSubsystem.reverseIntakeCommand());
+    m_driverController.leftBumper().whileTrue(m_intakeSubsystem.intakeCommand());
+    m_driverController.rightTrigger().whileTrue(m_intakeSubsystem.reverseIntakeCommand());
     
     // Shooter controls
-    //m_driverController.rightBumper().whileTrue(m_shooterSubsystem.shootCommand());
+    m_driverController.rightBumper().whileTrue(m_shooterSubsystem.shootCommand());
     
     // Drive with left stick
     m_swerveSubsystem.setDefaultCommand(
