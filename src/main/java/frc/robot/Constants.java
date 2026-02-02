@@ -16,8 +16,19 @@ import edu.wpi.first.math.util.Units;
  */
 public final class Constants {
   public static final double MAX_SPEED  = Units.feetToMeters(14.5);
+  public static final String SWERVE_DIR = "deploy/swerve";
   
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+  }
+
+  public static class IntakeConstants {
+    public static final int INTAKE_MOTOR_PORT = 0;  // Adjust port as needed
+    public static final double INTAKE_SPEED = 0.8;  // 0-1.0
+  }
+
+  public static class ShooterConstants {
+    public static final int SHOOTER_MOTOR_PORT = 1;  // Adjust port as needed
+    public static final double SHOOT_SPEED = 1.0;    // 0-1.0
   }
 }
