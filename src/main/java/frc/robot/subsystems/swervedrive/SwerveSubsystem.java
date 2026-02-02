@@ -386,7 +386,6 @@ public class SwerveSubsystem extends SubsystemBase
     }).finallyDo(() -> swerveDrive.drive(new Translation2d(0, 0), 0, false, false));
   }
 
-
   /**
    * Replaces the swerve module feedforward with a new SimpleMotorFeedforward object.
    *
@@ -399,6 +398,28 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.replaceSwerveModuleFeedforward(new SimpleMotorFeedforward(kS, kV, kA));
   }
 
+  /**
+   * Command to drive the swerve drive using joystick input.
+   *
+   * @param translationX Function that returns desired x translation
+   * @param translationY Function that returns desired y translation  
+   * @param rotation Function that returns desired rotation
+   * @return a command that drives the swerve
+   */
+  /**
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier rotation)
+  {
+    return run(() -> {
+      Translation2d translation = new Translation2d(translationX.getAsDouble() * Constants.MAX_SPEED, 
+                                                     translationY.getAsDouble() * Constants.MAX_SPEED);
+      double rotationVal = rotation.getAsDouble() * swerveDrive.swerveController.config.maxAngularVelocity;
+      
+      // Drive with field-relative motion
+      swerveDrive.drive(translation, rotationVal, true, false);
+    }).finallyDo(() -> swerveDrive.drive(new Translation2d(0, 0), 0, false, false));
+  }
+  */
+  
   /**
    * Command to drive the robot using translative values and heading as angular velocity.
    *
