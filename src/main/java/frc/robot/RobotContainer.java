@@ -11,6 +11,7 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -67,13 +68,26 @@ public class RobotContainer {
     m_driverController.rightBumper().whileTrue(m_shooterSubsystem.shootCommand());
     
     // Drive with left stick
-    m_swerveSubsystem.setDefaultCommand(
+    /* m_swerveSubsystem.setDefaultCommand(
         m_swerveSubsystem.driveCommand(
             () -> -m_driverController.getLeftY(),
             () -> -m_driverController.getLeftX(),
             () -> -m_driverController.getRightX()
         )
-    );
+    ); */
+
+    // Applies deadbands and inverts controls because joysticks
+    // are back-right positive while robot
+    // controls are front-left positive
+    // left stick controls translation
+    // right stick controls the desired angle NOT angular rotation
+    Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
+        () -> MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+        () -> MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+        () -> m_driverController.getRightX(),
+        () -> m_driverController.getRightY());
+
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
   /**
