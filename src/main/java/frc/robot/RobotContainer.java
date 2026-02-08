@@ -29,7 +29,7 @@ public class RobotContainer {
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SwerveSubsystem m_swerveSubsystem;
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-  private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  //private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -60,12 +60,38 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed, cancelling on release.
     //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
 
-    // Intake controls
-    m_driverController.leftBumper().whileTrue(m_intakeSubsystem.intakeCommand());
-    m_driverController.rightTrigger().whileTrue(m_intakeSubsystem.reverseIntakeCommand());
+    // Intake controls (19)
+    //m_driverController.a().whileTrue(m_intakeSubsystem.intakeCommand());
+    //m_driverController.y().whileTrue(m_intakeSubsystem.reverseIntakeCommand());
     
-    // Shooter controls
-    m_driverController.rightBumper().whileTrue(m_shooterSubsystem.shootCommand());
+    // Shooter controls (9)
+    //m_driverController.x().whileTrue(m_shooterSubsystem.shootCommand());
+    
+    // Test Code
+    // Map the A button
+    // While held: spin at 50% speed. When released: stop.
+    m_driverController.a()
+        .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(0.5)))
+        .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
+    
+    // Map the B button
+    // To go in reverse, just map another button (like B) to -0.5
+    m_driverController.b()
+        .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(-0.5)))
+        .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
+
+    // Map the X button
+    //m_driverController.x()
+    //    .whileTrue(m_shooterSubsystem.run(() -> m_shooterSubsystem.setSpeed(0.5)))
+    //    .onFalse(m_shooterSubsystem.runOnce(() -> m_shooterSubsystem.stop()));
+
+    // Map the Y button
+    //m_driverController.y()
+    //    .whileTrue(m_shooterSubsystem.run(() -> m_shooterSubsystem.setSpeed(-0.5)))
+    //    .onFalse(m_shooterSubsystem.runOnce(() -> m_shooterSubsystem.stop()));
+    m_driverController.y().whileTrue(m_swerveSubsystem.run(() -> m_swerveSubsystem.centerModulesCommand()));
+    
+    // End Test code
     
     // Drive with left stick
     /* m_swerveSubsystem.setDefaultCommand(

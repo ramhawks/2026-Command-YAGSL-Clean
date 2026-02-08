@@ -4,6 +4,10 @@
 
 package frc.robot.subsystems;
 
+//import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -14,13 +18,19 @@ import frc.robot.Constants;
  */
 public class ShooterSubsystem extends SubsystemBase {
   
-  private final Spark m_shooterMotor;
+  //private final Spark m_shooterMotor;
+  private final SparkMax m_shooterMotorSparkMax;
   
   /**
    * Creates a new ShooterSubsystem.
    */
   public ShooterSubsystem() {
-    m_shooterMotor = new Spark(Constants.ShooterConstants.SHOOTER_MOTOR_PORT);
+    //m_shooterMotor = new Spark(Constants.ShooterConstants.SHOOTER_MOTOR_PORT);
+    m_shooterMotorSparkMax = new SparkMax(Constants.ShooterConstants.SHOOTER_MOTOR_PORT, MotorType.kBrushless);
+  }
+
+  public void setSpeed(double speed) {
+    m_shooterMotorSparkMax.set(speed);
   }
   
   /**
@@ -29,7 +39,7 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return a command that shoots fuel
    */
   public Command shootCommand() {
-    return run(() -> m_shooterMotor.set(Constants.ShooterConstants.SHOOT_SPEED));
+    return run(() -> m_shooterMotorSparkMax.set(Constants.ShooterConstants.SHOOT_SPEED));
   }
   
   /**
@@ -38,15 +48,15 @@ public class ShooterSubsystem extends SubsystemBase {
    * @return a command that stops the shooter
    */
   public Command stopShooterCommand() {
-    return runOnce(() -> m_shooterMotor.set(0.0))
-        .andThen(() -> m_shooterMotor.set(0.0));
+    return runOnce(() -> m_shooterMotorSparkMax.set(0.0))
+        .andThen(() -> m_shooterMotorSparkMax.set(0.0));
   }
   
   /**
    * Stops the shooter.
    */
   public void stop() {
-    m_shooterMotor.set(0.0);
+    m_shooterMotorSparkMax.set(0.0);
   }
   
   @Override
