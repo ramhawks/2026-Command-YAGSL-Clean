@@ -4,15 +4,16 @@
 
 package frc.robot;
 
+import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -26,22 +27,33 @@ import java.io.File;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  private final ExampleSubsystem m_exampleSubsystem;
   private final SwerveSubsystem m_swerveSubsystem;
   private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
   //private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  
+  // The driver's controller
+  private final CommandXboxController m_driverController = new CommandXboxController(DriverConstants.kDriverControllerPort);
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  // The operator's controller
+  private final CommandXboxController m_operatorController = new CommandXboxController(OperatorConstants.kOperatorControllerPort);
+
+  // The autonomous chooser
+  private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    m_exampleSubsystem = new ExampleSubsystem();
     // Initialize the swerve subsystem with the deploy directory
     m_swerveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
     
     // Configure the trigger bindings
     configureBindings();
+
+    // Set the options to show up in the Dashboard for selecting auto modes. If you
+    // add additional auto modes you can add additional lines here with
+    // autoChooser.addOption
+    //autoChooser.setDefaultOption("Autonomous", Autos.exampleAuto(m_driverController, ballSubsystem));
   }
 
   /**
@@ -54,31 +66,50 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    //new Trigger(m_exampleSubsystem::exampleCondition).onTrue(new ExampleCommand(m_exampleSubsystem));
+    // While the left bumper on operator controller is held, intake Fuel
+    //m_operatorController.leftBumper()
+    //    .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
+    // While the right bumper on the operator controller is held, spin up for 1
+    // second, then launch fuel. When the button is released, stop.
+    //m_operatorController.rightBumper()
+    //    .whileTrue(ballSubsystem.spinUpCommand().withTimeout(SPIN_UP_SECONDS)
+    //        .andThen(ballSubsystem.launchCommand())
+    //        .finallyDo(() -> ballSubsystem.stop()));
+    // While the A button is held on the operator controller, eject fuel back out
+    // the intake
+    //m_operatorController.a()
+    //    .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed, cancelling on release.
-    //m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
-
-    // Intake controls (19)
-    //m_driverController.a().whileTrue(m_intakeSubsystem.intakeCommand());
-    //m_driverController.y().whileTrue(m_intakeSubsystem.reverseIntakeCommand());
+    // Set the default command for the drive subsystem to the command provided by
+    // factory with the values provided by the joystick axes on the driver
+    // controller. The Y axis of the controller is inverted so that pushing the
+    // stick away from you (a negative value) drives the robot forwards (a positive
+    // value). The X-axis is also inverted so a positive value (stick to the right)
+    // results in clockwise rotation (front of the robot turning right). Both axes
+    // are also scaled down so the rotation is more easily controllable.
+    //m_driverController.setDefaultCommand(
+    //    m_driverController.driveArcade(
+    //        () -> -m_driverController.getLeftY() * DRIVE_SCALING,
+    //        () -> -m_driverController.getRightX() * ROTATION_SCALING));
     
-    // Shooter controls (9)
-    //m_driverController.x().whileTrue(m_shooterSubsystem.shootCommand());
+            
+
+    
+
+    
     
     // Test Code
     // Map the A button
     // While held: spin at 50% speed. When released: stop.
-    m_driverController.a()
-        .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(0.5)))
-        .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
+    //m_driverController.a()
+    //    .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(0.5)))
+    //    .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
     
     // Map the B button
     // To go in reverse, just map another button (like B) to -0.5
-    m_driverController.b()
-        .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(-0.5)))
-        .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
+    //m_driverController.b()
+    //    .whileTrue(m_intakeSubsystem.run(() -> m_intakeSubsystem.setSpeed(-0.5)))
+    //    .onFalse(m_intakeSubsystem.runOnce(() -> m_intakeSubsystem.stop()));
 
     // Map the X button
     //m_driverController.x()
@@ -89,7 +120,7 @@ public class RobotContainer {
     //m_driverController.y()
     //    .whileTrue(m_shooterSubsystem.run(() -> m_shooterSubsystem.setSpeed(-0.5)))
     //    .onFalse(m_shooterSubsystem.runOnce(() -> m_shooterSubsystem.stop()));
-    m_driverController.y().whileTrue(m_swerveSubsystem.run(() -> m_swerveSubsystem.centerModulesCommand()));
+    //m_driverController.y().whileTrue(m_swerveSubsystem.run(() -> m_swerveSubsystem.centerModulesCommand()));
     
     // End Test code
     

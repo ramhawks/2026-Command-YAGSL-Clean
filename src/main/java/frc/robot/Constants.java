@@ -19,9 +19,13 @@ public final class Constants {
   public static final String SWERVE_DIR = "deploy/swerve/neo";
   
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+    public static final int kOperatorControllerPort = 0;
     public static final double LEFT_Y_DEADBAND = 0.25;
     public static final double LEFT_X_DEADBAND = 0.25;
+  }
+
+  public static class DriverConstants {
+    public static final int kDriverControllerPort = 1;
   }
 
   public static class IntakeConstants {
