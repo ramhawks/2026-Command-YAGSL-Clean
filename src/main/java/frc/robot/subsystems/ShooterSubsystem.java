@@ -4,11 +4,11 @@
 
 package frc.robot.subsystems;
 
-//import com.ctre.phoenix6.sim.TalonFXSimState.MotorType;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+//import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -27,6 +27,12 @@ public class ShooterSubsystem extends SubsystemBase {
   public ShooterSubsystem() {
     //m_shooterMotor = new Spark(Constants.ShooterConstants.SHOOTER_MOTOR_PORT);
     m_shooterMotorSparkMax = new SparkMax(Constants.ShooterConstants.SHOOTER_MOTOR_PORT, MotorType.kBrushless);
+
+    // put default values onto the dashboard
+    // all methods in this subsystem pull their values from the dashbaord to allow
+    // you to tune the values easily, and then replace the values in Constants.java
+    // with your new values. For more information, see the Software Guide.
+    SmartDashboard.putNumber("Shooter speed", Constants.ShooterConstants.SHOOT_SPEED);
   }
 
   public void setSpeed(double speed) {

@@ -36,5 +36,6 @@ public final class Constants {
   public static class ShooterConstants {
     public static final int SHOOTER_MOTOR_PORT = 18;  // Adjust port as needed
     public static final double SHOOT_SPEED = 0.8;    // 0-1.0
+    public static final double SPIN_UP_SECONDS = 1.0; // Time to spin up shooter before launching
   }
 }
