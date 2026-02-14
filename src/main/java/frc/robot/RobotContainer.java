@@ -8,6 +8,7 @@ import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveDistance;
+import frc.robot.subsystems.CANFuelSubsystem;
 //import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -31,8 +32,9 @@ import java.io.File;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem m_swerveSubsystem;
-  private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-  private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  //private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
+  //private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
+  private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
   
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(DriverConstants.kDriverControllerPort);
@@ -70,8 +72,10 @@ public class RobotContainer {
   private void configureBindings() {
     // LEFT BUMPER: INTAKE
     // While the left bumper on operator controller is held, intake Fuel at the default speed. When the button is released, stop.
+    //m_operatorController.leftBumper()
+    //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.intakeCommand(), () -> m_intakeSubsystem.stop()));
     m_operatorController.leftBumper()
-        .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.intakeCommand(), () -> m_intakeSubsystem.stop()));
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
 
     // While the left bumper on driver controller is held, intake Fuel at 50% speed. When the button is released, stop.
     //m_driverController.leftBumper()
@@ -79,19 +83,21 @@ public class RobotContainer {
     
     // RIGHT BUMPER: SHOOT
     // While the right bumper on the operator controller is held, launch fuel at full speed. When the button is released, stop.
-    m_operatorController.rightBumper()
-        .whileTrue(m_shooterSubsystem.runEnd(() -> m_shooterSubsystem.shootCommand(), () -> m_shooterSubsystem.stop()));
+    //m_operatorController.rightBumper()
+    //    .whileTrue(m_shooterSubsystem.runEnd(() -> m_shooterSubsystem.shootCommand(), () -> m_shooterSubsystem.stop()));
     
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    //m_operatorController.rightBumper()
-    //    .whileTrue(m_shooterSubsystem.spinUpCommand().withTimeout(Constants.ShooterConstants.SPIN_UP_SECONDS)
-    //    .andThen(m_shooterSubsystem.launchCommand())
-    //    .finallyDo(() -> m_shooterSubsystem.stop()));
+    m_operatorController.rightBumper()
+        .whileTrue(ballSubsystem.spinUpCommand().withTimeout(Constants.ShooterConstants.SPIN_UP_SECONDS)
+        .andThen(ballSubsystem.launchCommand())
+        .finallyDo(() -> ballSubsystem.stop()));
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake
+    //m_operatorController.a()
+    //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.reverseIntakeCommand(), () -> m_intakeSubsystem.stop()));
     m_operatorController.a()
-        .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.reverseIntakeCommand(), () -> m_intakeSubsystem.stop()));
+        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
     // DRIVE COMMANDS
     // TESTING
