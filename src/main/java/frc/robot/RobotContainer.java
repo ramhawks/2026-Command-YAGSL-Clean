@@ -124,8 +124,8 @@ public class RobotContainer {
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15));
 
-    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
-    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
+    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
   /**
