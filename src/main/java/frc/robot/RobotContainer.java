@@ -99,26 +99,32 @@ public class RobotContainer {
     m_operatorController.a()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
 
+    // START BUTTON: ZERO GYRO
+    // Press the start button on the driver controller to zero the gyro on the swerve drive. This is important for field-oriented control.
+    m_driverController.start()
+        .onTrue(m_swerveSubsystem.runOnce(() -> m_swerveSubsystem.zeroGyro()));
+
     // DRIVE COMMANDS
     // TESTING
     // Robot-centric drive command for testing and tuning the swerve drive.
     // Not field-oriented. Controls are relative to the robot's current orientation. 
     // Drive the robot with the left stick for translation and the right stick for rotation. Useful for testing and tuning the swerve drive
-    //Command driveLeftStick = m_swerveSubsystem.driveCommand(
-    //    () -> -m_driverController.getLeftY(),
-    //    () -> -m_driverController.getLeftX(),
-    //    () -> -m_driverController.getRightX());
+    Command driveFieldOrientedAngVel = m_swerveSubsystem.driveCommand(
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightX(), 0.15));
 
     // COMPETITION
     // Drive the robot with the left stick for translation and the right stick for rotation. This is field-oriented, so the
     // controls are relative to the field rather than the robot's current orientation. This is generally more intuitive for drivers,
     // but may require more tuning to get right.
     Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
-        () -> MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> m_driverController.getRightX(),
-        () -> m_driverController.getRightY());
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+        () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15));
 
+    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
