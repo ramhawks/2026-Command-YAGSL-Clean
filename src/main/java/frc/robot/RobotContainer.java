@@ -17,6 +17,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -46,6 +47,8 @@ public class RobotContainer {
   // NOTE: this is not currently used since we don't have any autonomous commands, but it is set up to be easily added to in the future
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
+  private double speedScale = 1.0; // Default speed scale (100%)
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Initialize the swerve subsystem with the deploy directory
@@ -70,6 +73,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    // *********  OPERATOR CONTROLS  *********
     // LEFT BUMPER: INTAKE
     // While the left bumper on operator controller is held, intake Fuel at the default speed. When the button is released, stop.
     //m_operatorController.leftBumper()
@@ -98,11 +102,19 @@ public class RobotContainer {
     //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.reverseIntakeCommand(), () -> m_intakeSubsystem.stop()));
     m_operatorController.a()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
+    // ************************************
 
+    // *********  DRIVE CONTROLS  *********
     // START BUTTON: ZERO GYRO
     // Press the start button on the driver controller to zero the gyro on the swerve drive. This is important for field-oriented control.
     m_driverController.start()
         .onTrue(m_swerveSubsystem.runOnce(() -> m_swerveSubsystem.zeroGyro()));
+
+    // A BUTTON: TOGGLE SPEED SCALE (slow mode)
+    // Press the A button on the driver controller to toggle between full speed and half speed.
+    m_driverController.a()
+        .onTrue(new InstantCommand(() -> speedScale = 0.5))
+        .onFalse(new InstantCommand(() -> speedScale = 1.0));
 
     // DRIVE COMMANDS
     // TESTING
@@ -118,11 +130,30 @@ public class RobotContainer {
     // Drive the robot with the left stick for translation and the right stick for rotation. This is field-oriented, so the
     // controls are relative to the field rather than the robot's current orientation. This is generally more intuitive for drivers,
     // but may require more tuning to get right.
+
+    // BASE Drive command with speed scaling applied to translation, but not rotation.
+    /* Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND) * speedScale,
+        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND) * speedScale,
+        // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
+        () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
+
+    // SQUARED Drive command with speed scaling applied to translation, but not rotation and with squared joystick input shaping.
     Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),
-        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15));
+        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND)) * speedScale,
+        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND)) * speedScale,
+        // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
+        () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale
+
+    // EXPO Drive command with speed scaling applied to translation, but not rotation and with exponential joystick input shaping.
+    /* Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
+        () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
+        () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
+        // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
+        () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
+        () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
     //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
@@ -143,5 +174,21 @@ public class RobotContainer {
       new WaitCommand(1.0),                    // Pause
       new DriveDistance(-1, m_swerveSubsystem)         // Return
     );
+  }
+
+  // Square or Cube the input while preserving the sign, to give finer control at low speeds. Joystick input shaping.
+  private static double shapeAxis(double value) {
+    // value is expected in [-1, 1]
+    // Square
+    return Math.copySign(value * value, value);
+
+    // Cube
+    // return value * value * value;
+  }
+
+  // Exponential shaping of the input, with a tunable exponent. Joystick input shaping.
+  private static double expo(double x, double expo) {
+    // expo in [0..1]. 0 = linear, 1 = very soft near center
+    return (1 - expo) * x + expo * x * x * x;
   }
 }

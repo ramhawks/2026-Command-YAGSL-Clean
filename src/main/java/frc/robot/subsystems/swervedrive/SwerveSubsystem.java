@@ -455,8 +455,7 @@ public class SwerveSubsystem extends SubsystemBase
    * @param headingY     Heading Y to calculate angle of the joystick.
    * @return Drive command.
    */
-  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
-                              DoubleSupplier headingY)
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX, DoubleSupplier headingY)
   {
     // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
     return run(() -> {
@@ -465,11 +464,12 @@ public class SwerveSubsystem extends SubsystemBase
                                                                                  translationY.getAsDouble()), 0.8);
 
       // Make the robot move
-      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
-                                                                      headingX.getAsDouble(),
-                                                                      headingY.getAsDouble(),
-                                                                      swerveDrive.getOdometryHeading().getRadians(),
-                                                                      swerveDrive.getMaximumChassisVelocity()));
+      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), 
+            scaledInputs.getY(),
+            headingX.getAsDouble(),
+            headingY.getAsDouble(),
+            swerveDrive.getOdometryHeading().getRadians(),
+            swerveDrive.getMaximumChassisVelocity()));
     });
   }
 

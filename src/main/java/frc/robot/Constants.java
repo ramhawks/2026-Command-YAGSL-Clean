@@ -26,6 +26,7 @@ public final class Constants {
 
   public static class DriverConstants {
     public static final int kDriverControllerPort = 1;
+    public static final double TRANSLATION_EXPO = 0.5; // Exponential shaping factor for translation joystick input (0 = no shaping, 1 = full shaping)
   }
 
   public static class IntakeConstants {
