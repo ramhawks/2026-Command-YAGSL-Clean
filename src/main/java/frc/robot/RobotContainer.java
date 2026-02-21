@@ -92,7 +92,7 @@ public class RobotContainer {
     
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
     m_operatorController.rightBumper()
-        .whileTrue(ballSubsystem.spinUpCommand().withTimeout(Constants.ShooterConstants.SPIN_UP_SECONDS)
+        .whileTrue(ballSubsystem.spinUpCommand().withTimeout(0.5)
         .andThen(ballSubsystem.launchCommand())
         .finallyDo(() -> ballSubsystem.stop()));
 
@@ -155,8 +155,8 @@ public class RobotContainer {
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
-    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
-    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
+    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
   /**
