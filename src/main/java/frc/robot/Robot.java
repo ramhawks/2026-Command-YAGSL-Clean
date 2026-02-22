@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -42,6 +43,14 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+  }
+
+  /** This function is called once when the robot is first started up. */
+  @Override
+  public void robotInit() {
+    // Add a camera stream to the dashboard.
+    // Elastic only supports adding camera streams that are published to the RoboRIO's Camera Server.
+    //CameraServer.startAutomaticCapture();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
