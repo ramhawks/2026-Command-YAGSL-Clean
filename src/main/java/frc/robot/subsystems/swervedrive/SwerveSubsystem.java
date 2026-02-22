@@ -74,7 +74,7 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @param directory Directory of swerve drive config files.
    */
-   public SwerveSubsystem(File directory)
+  public SwerveSubsystem(File directory)
   { 
     //boolean blueAlliance = false;
     /* Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1),
@@ -84,14 +84,11 @@ public class SwerveSubsystem extends SubsystemBase
                                                                       Meter.of(4)),
                                                     Rotation2d.fromDegrees(180));
     */
-                                                    
-                                                    
 
     // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     
-    try
-    {
+    try {
       Pose2d startingPose = new Pose2d(new Translation2d(
           Meter.of(1), 
           Meter.of(4)), 
@@ -100,10 +97,11 @@ public class SwerveSubsystem extends SubsystemBase
       swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.MAX_SPEED, startingPose);
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
-    } catch (Exception e)
-    {
+    } 
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
+
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
@@ -174,51 +172,38 @@ public class SwerveSubsystem extends SubsystemBase
       final boolean enableFeedforward = true;
       // Configure AutoBuilder last
       AutoBuilder.configure(
-          this::getPose,
-          // Robot pose supplier
-          this::resetOdometry,
-          // Method to reset odometry (will be called if your auto has a starting pose)
-          this::getRobotVelocity,
-          // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-          (speedsRobotRelative, moduleFeedForwards) -> {
-            if (enableFeedforward)
-            {
+          this::getPose,          // Robot pose supplier
+          this::resetOdometry,    // Method to reset odometry (will be called if your auto has a starting pose)
+          this::getRobotVelocity, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+          (speedsRobotRelative, moduleFeedForwards) -> {  // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            if (enableFeedforward) {
               swerveDrive.drive(
                   speedsRobotRelative,
                   swerveDrive.kinematics.toSwerveModuleStates(speedsRobotRelative),
                   moduleFeedForwards.linearForces()
                                );
-            } else
-            {
+            } else {
               swerveDrive.setChassisSpeeds(speedsRobotRelative);
             }
           },
-          // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-          new PPHolonomicDriveController(
-              // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(5.0, 0.0, 0.0),
-              // Translation PID constants
-              new PIDConstants(5.0, 0.0, 0.0)
-              // Rotation PID constants
+          new PPHolonomicDriveController(               // PPHolonomicController is the built in path following controller for holonomic drive trains  
+              new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+              new PIDConstants(5.0, 0.0, 0.0)  // Rotation PID constants
           ),
-          config,
-          // The robot configuration
+          config, // The robot configuration
           () -> {
             // Boolean supplier that controls when the path will be mirrored for the red alliance
             // This will flip the path being followed to the red side of the field.
             // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
             var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent())
-            {
+            if (alliance.isPresent()) {
               return alliance.get() == DriverStation.Alliance.Red;
             }
             return false;
           },
-          this
-          // Reference to this subsystem to set requirements
-                           );
-
+          this // Reference to this subsystem to set requirements
+      );
     } catch (Exception e) {
       // Handle exception as needed
       e.printStackTrace();

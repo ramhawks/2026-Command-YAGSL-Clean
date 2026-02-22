@@ -58,5 +58,9 @@ public final class Constants {
     public static final double LAUNCHING_LAUNCHER_VOLTAGE = -10.6;
     public static final double SPIN_UP_FEEDER_VOLTAGE = -6;
     public static final double SPIN_UP_SECONDS = 1;
+
+    public static final double DEFAULT_AT_SPEED_RPM = 4500.0;
+    public static final double DEFAULT_AT_SPEED_TOL_RPM = 150.0;
+    public static final double DEFAULT_AT_SPEED_DEBOUNCE_S = 0.10;
   }
 }

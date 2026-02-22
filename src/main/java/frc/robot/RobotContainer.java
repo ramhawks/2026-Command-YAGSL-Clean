@@ -8,21 +8,39 @@ import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveDistance;
+import frc.robot.commands.AutoBotHub;
 import frc.robot.subsystems.CANFuelSubsystem;
-//import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -31,10 +49,8 @@ import java.io.File;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  // The robot's subsystems and commands are defined here...
+  // The robot's subsystems and commands are defined here
   private final SwerveSubsystem m_swerveSubsystem;
-  //private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
-  //private final ShooterSubsystem m_shooterSubsystem = new ShooterSubsystem();
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
   
   // The driver's controller
@@ -44,23 +60,42 @@ public class RobotContainer {
   private final CommandXboxController m_operatorController = new CommandXboxController(OperatorConstants.kOperatorControllerPort);
 
   // The autonomous chooser
-  // NOTE: this is not currently used since we don't have any autonomous commands, but it is set up to be easily added to in the future
-  private final SendableChooser<Command> autoChooser = new SendableChooser<>();
+  private final SendableChooser<Command> autoChooser;
 
   private double speedScale = 1.0; // Default speed scale (100%)
+
+  // Example of a config value you can edit in Elastic.
+  // We're using NetworkTables because Shuffleboard and SmartDashboard (app) are being deprecated in favor of Elastic and AdvantageScope.
+  private final NetworkTableEntry onRedSideEntry = NetworkTableInstance
+      .getDefault()
+      .getTable("Config")
+      .getEntry("OnRedSide");
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Initialize the swerve subsystem with the deploy directory
     m_swerveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve/neo"));
-    
+
     // Configure the trigger bindings
     configureBindings();
 
-    // Set the options to show up in the Dashboard for selecting auto modes. If you
-    // add additional auto modes you can add additional lines here with autoChooser.addOption
-    // NOTE: Need to investigate what this does and how to use it, since we don't have any autonomous commands yet. It may be useful for testing, though.
-    //autoChooser.setDefaultOption("Autonomous", Autos.exampleAuto(m_driverController, ballSubsystem));
+    // Register all named commands for use in auto paths. This allows us to use the AutoBuilder to create autonomous commands from PathPlanner paths that can call these named commands.
+    registerNamedCommands();
+
+    // Set the default value for the "OnRedSide" config entry if it hasn't been set yet. This allows you to use this entry in autonomous commands to adjust behavior based on which side of the field we're on.
+    if (Double.isNaN(onRedSideEntry.getDouble(Double.NaN))) {
+      onRedSideEntry.setBoolean(true); // Default to true if not set
+    }
+
+    // Build an auto chooser. This will use BlueTopAuto-Simple as the default option.
+    autoChooser = AutoBuilder.buildAutoChooser("BlueTopAuto-Simple");
+
+    // Publish chooser so Elastic can pick it up (shows under /SmartDashboard)
+    SmartDashboard.putData("Auto choices", autoChooser);
+
+    // Use addOption when you want to add non-PathPlanner autonomous commands to the chooser.
+    // Add buildTestCommand(): Drive foward 2 meters, turn 360 degrees, then shoot for 3 seconds.
+    autoChooser.addOption("Test: Forward 2m + turn 360 + shoot 3s", buildTestCommand());
   }
 
   /**
@@ -91,10 +126,17 @@ public class RobotContainer {
     //    .whileTrue(m_shooterSubsystem.runEnd(() -> m_shooterSubsystem.shootCommand(), () -> m_shooterSubsystem.stop()));
     
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    m_operatorController.rightBumper()
-        .whileTrue(ballSubsystem.spinUpCommand().withTimeout(0.5)
-        .andThen(ballSubsystem.launchCommand())
-        .finallyDo(() -> ballSubsystem.stop()));
+    //m_operatorController.rightBumper()
+    //    .whileTrue(ballSubsystem.spinUpCommand().withTimeout(0.5)
+    //    .andThen(ballSubsystem.launchCommand())
+    //    .finallyDo(() -> ballSubsystem.stop()));
+    m_operatorController.rightBumper().whileTrue(
+          Commands.sequence(
+            ballSubsystem.spinUpCommand(),
+            Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+            ballSubsystem.launchCommand()
+          )
+    );      
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake
@@ -166,14 +208,14 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    //return autoChooser.getSelected();
+    return autoChooser.getSelected();
 
     // This creates a sequence: Drive forward, wait 1 second, then drive back.
-    return new SequentialCommandGroup(
-      new DriveDistance(1, m_swerveSubsystem),  // Move 1 meter
-      new WaitCommand(1.0),                    // Pause
-      new DriveDistance(-1, m_swerveSubsystem)         // Return
-    );
+    // return new SequentialCommandGroup(
+    //   new DriveDistance(1, m_swerveSubsystem),  // Move 1 meter
+    //   new WaitCommand(1.0),                    // Pause
+    //   new DriveDistance(-1, m_swerveSubsystem)         // Return
+    // );
   }
 
   // Square or Cube the input while preserving the sign, to give finer control at low speeds. Joystick input shaping.
@@ -190,5 +232,97 @@ public class RobotContainer {
   private static double expo(double x, double expo) {
     // expo in [0..1]. 0 = linear, 1 = very soft near center
     return (1 - expo) * x + expo * x * x * x;
+  }
+
+  // Create a test command that drives forward 2 meters, turns 360 degrees, then shoots for 3 seconds. 
+  // An example of how you to build a more complex command using your subsystems and commands. 
+  // This command can be added to the auto chooser to run it in autonomous for testing.
+  private Command buildTestCommand() {
+    // 1) Drive forward 2 meters (robot-relative forward), using odometry distance
+    Command driveForward2m = createDriveForwardMetersCommand(2.0);
+
+    // 2) Turn 360 degrees (starter version): spin at fixed omega for the time needed
+    double omegaRadPerSec = 1.5;  // tune: higher = faster spin
+    double secondsFor360 = (2.0 * Math.PI) / omegaRadPerSec;
+
+    Command turn360 = Commands.run(
+        () -> m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds(0.0, 0.0, omegaRadPerSec)),
+        m_swerveSubsystem
+    ).withTimeout(secondsFor360)
+     .finallyDo(() -> m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds()));
+
+    // 3) Shoot for 3 seconds (spin up -> wait for atSpeed -> launch)
+    Command shoot3s = Commands.sequence(
+        ballSubsystem.spinUpCommand(),
+        Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+        ballSubsystem.launchCommand().withTimeout(3.0)
+    );
+
+    // Put it all together
+    Command testAuto = Commands.sequence(
+        driveForward2m,
+        turn360,
+        shoot3s
+    );
+
+    return testAuto;
+  }
+
+  private Command createDriveForwardMetersCommand(double meters) {
+    PIDController distancePid = new PIDController(2.0, 0.0, 0.0); // tune kP
+    distancePid.setTolerance(0.05);                         // 5 cm
+
+    AtomicReference<Pose2d> startPoseRef = new AtomicReference<>();
+
+    return new FunctionalCommand(
+        // init
+        () -> {
+          startPoseRef.set(m_swerveSubsystem.getPose());
+          distancePid.reset();
+        },
+        // execute
+        () -> {
+          Pose2d start = startPoseRef.get();
+          Pose2d current = m_swerveSubsystem.getPose();
+
+          // delta pose in the start frame; X is “forward” distance traveled
+          double traveled = current.relativeTo(start).getX();
+          double output = distancePid.calculate(traveled, meters);
+
+          // Clamp speed (m/s). Start conservative.
+          double vx = MathUtil.clamp(output, -1.5, 1.5);
+
+          m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds(vx, 0.0, 0.0));
+          distancePid.close();
+        },
+        // end
+        (interrupted) -> m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds()),
+        // isFinished
+        () -> distancePid.atSetpoint(),
+        // requirements
+        m_swerveSubsystem
+    );
+  }
+
+  private void registerNamedCommands() {
+    // Register any commands that you want to be able to call from PathPlanner paths here. This allows you to use the AutoBuilder
+    // to create autonomous commands from PathPlanner paths that can call these named commands.
+    // PRO TIP: If the command grows beyond 3 to 5 lines or it will re-used, promote it to it's own class under commands
+
+    // *********  AutoBotHub  *********
+    // Command for shooting FUEL into the hub during autonomous.
+    Command autoBotHub = Commands.sequence(
+      ballSubsystem.spinUpCommand(),
+      Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+      ballSubsystem.launchCommand().withTimeout(0.75)
+    );
+    
+    NamedCommands.registerCommand("AutoBotHub", autoBotHub);
+    // ************************************
+
+    // **********  SomeCommand  *********
+    // Command for...
+    // Code goes here.
+    // *********************************
   }
 }

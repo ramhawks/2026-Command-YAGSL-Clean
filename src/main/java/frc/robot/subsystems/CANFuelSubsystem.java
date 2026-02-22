@@ -4,41 +4,76 @@
 
 package frc.robot.subsystems;
 
-//import com.revrobotics.spark.SparkBase.PersistMode;
-//import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.ResetMode;
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class CANFuelSubsystem extends SubsystemBase {
   private final SparkMax feederRoller;
   private final SparkMax intakeLauncherRoller;
 
+  // Encoder for the launcher roller.
+  private final RelativeEncoder launcherEncoder;
+
+  private final Timer atSpeedTimer = new Timer();
+
+  // ************  NT Tables  ************
+  private final NetworkTable tuningFuel = NetworkTableInstance.getDefault().getTable("Tuning").getSubTable("Fuel");
+  private final NetworkTable telemetryFuel = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Fuel");
+
+  // ---- Tunable entries ----
+  private final NetworkTableEntry intakeFeederVolts         = tuningFuel.getEntry("IntakeFeederVolts");
+  private final NetworkTableEntry intakeLauncherVolts       = tuningFuel.getEntry("IntakeLauncherVolts");
+  private final NetworkTableEntry launchFeederVolts         = tuningFuel.getEntry("LaunchFeederVolts");
+  private final NetworkTableEntry launchLauncherVolts       = tuningFuel.getEntry("LaunchLauncherVolts");
+  private final NetworkTableEntry spinupFeederVolts         = tuningFuel.getEntry("SpinupFeederVolts");
+  private final NetworkTableEntry launcherAtSpeedRPM        = tuningFuel.getEntry("LauncherAtSpeedRPM");
+  private final NetworkTableEntry launcherAtSpeedTolRPM     = tuningFuel.getEntry("LauncherAtSpeedTolRPM");
+  private final NetworkTableEntry launcherAtSpeedDebounceS  = tuningFuel.getEntry("LauncherAtSpeedDebounceS");
+
+  // ---- Telemetry entries (for Elastic/AdvantageScope live) ----
+  private final NetworkTableEntry feederAppliedVoltsEntry   = telemetryFuel.getEntry("FeederAppliedVolts");
+  private final NetworkTableEntry launcherAppliedVoltsEntry = telemetryFuel.getEntry("LauncherAppliedVolts");
+  private final NetworkTableEntry launcherRpmEntry          = telemetryFuel.getEntry("LauncherRPM");
+  private final NetworkTableEntry atSpeedEntry              = telemetryFuel.getEntry("AtSpeed");
+
+
   /** Creates a new CANBallSubsystem. */
+  // TODO: Re-evaluate spinUp method. Currently the feeder spins up to speed before launch and the intakeLauncher remains the same speed
+  //       during spin-up. Do we want to set the feeder roller to 0 during spin-up and spin up the launcher roller?
+
   public CANFuelSubsystem() {
     // create brushless motors for each of the motors on the launcher mechanism
     intakeLauncherRoller = new SparkMax(INTAKE_LAUNCHER_MOTOR_ID, MotorType.kBrushless);
     feederRoller = new SparkMax(FEEDER_MOTOR_ID, MotorType.kBrushless);
 
-    // put default values for various fuel operations onto the dashboard
-    // all methods in this subsystem pull their values from the dashbaord to allow
-    // you to tune the values easily, and then replace the values in Constants.java
-    // with your new values. For more information, see the Software Guide.
-    SmartDashboard.putNumber("Intaking feeder roller value", INTAKING_FEEDER_VOLTAGE);
-    SmartDashboard.putNumber("Intaking intake roller value", INTAKING_INTAKE_VOLTAGE);
-    SmartDashboard.putNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE);
-    SmartDashboard.putNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE);
-    SmartDashboard.putNumber("Spin-up feeder roller value", SPIN_UP_FEEDER_VOLTAGE);
+    launcherEncoder = intakeLauncherRoller.getEncoder();
 
-    // create the configuration for the feeder roller, set a current limit and apply
-    // the config to the controller
+    // Put the defaults values for various fuel operations into the Network Table.
+    // All methods in this subsystem pull values from the Network Table. This allows you to tune the values easily.
+    // Replace tuned values in the Constants.java file.
+    setDefaultDouble(intakeFeederVolts,        INTAKING_FEEDER_VOLTAGE);
+    setDefaultDouble(intakeLauncherVolts,      INTAKING_INTAKE_VOLTAGE);
+    setDefaultDouble(launchFeederVolts,        LAUNCHING_FEEDER_VOLTAGE);
+    setDefaultDouble(launchLauncherVolts,      LAUNCHING_LAUNCHER_VOLTAGE);
+    setDefaultDouble(spinupFeederVolts,        SPIN_UP_FEEDER_VOLTAGE);
+    setDefaultDouble(launcherAtSpeedRPM,       DEFAULT_AT_SPEED_RPM);
+    setDefaultDouble(launcherAtSpeedTolRPM,    DEFAULT_AT_SPEED_TOL_RPM);
+    setDefaultDouble(launcherAtSpeedDebounceS, DEFAULT_AT_SPEED_DEBOUNCE_S);
+
+    // create the configuration for the feeder roller, set a current limit and apply the config to the controller
     SparkMaxConfig feederConfig = new SparkMaxConfig();
     feederConfig.smartCurrentLimit(FEEDER_MOTOR_CURRENT_LIMIT);
     feederRoller.configure(feederConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -54,27 +89,26 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to set the rollers to values for intaking
   public void intake() {
-    feederRoller
-        .setVoltage(SmartDashboard.getNumber("Intaking feeder roller value", INTAKING_FEEDER_VOLTAGE));
-    intakeLauncherRoller
-        .setVoltage(SmartDashboard.getNumber("Intaking intake roller value", INTAKING_INTAKE_VOLTAGE));
+    feederRoller.setVoltage(intakeFeederVolts.getDouble(INTAKING_FEEDER_VOLTAGE));
+    intakeLauncherRoller.setVoltage(intakeLauncherVolts.getDouble(INTAKING_INTAKE_VOLTAGE));
   }
 
-  // A method to set the rollers to values for ejecting fuel out the intake. Uses
-  // the same values as intaking, but in the opposite direction.
+  // A method to set the rollers to values for ejecting fuel out the intake. Uses the same values as intaking, but in the opposite direction.
   public void eject() {
-    feederRoller
-        .setVoltage(-1 * SmartDashboard.getNumber("Intaking feeder roller value", INTAKING_FEEDER_VOLTAGE));
-    intakeLauncherRoller
-        .setVoltage(-1 * SmartDashboard.getNumber("Intaking launcher roller value", INTAKING_INTAKE_VOLTAGE));
+    feederRoller.setVoltage(-intakeFeederVolts.getDouble(INTAKING_FEEDER_VOLTAGE));
+    intakeLauncherRoller.setVoltage(-intakeLauncherVolts.getDouble(INTAKING_INTAKE_VOLTAGE));
   }
 
   // A method to set the rollers to values for launching.
   public void launch() {
-    feederRoller
-        .setVoltage(SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE));
-    intakeLauncherRoller
-        .setVoltage(SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
+    feederRoller.setVoltage(launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
+    intakeLauncherRoller.setVoltage(launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
+  }
+
+  // A method to spin up the launcher roller while spinning the feeder roller to push Fuel away from the launcher
+  public void spinUp() {
+    feederRoller.setVoltage(spinupFeederVolts.getDouble(SPIN_UP_FEEDER_VOLTAGE));
+    intakeLauncherRoller.setVoltage(launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
   }
 
   // A method to stop the rollers
@@ -82,30 +116,56 @@ public class CANFuelSubsystem extends SubsystemBase {
     feederRoller.set(0);
     intakeLauncherRoller.set(0);
   }
+  
+  private static void setDefaultDouble(NetworkTableEntry entry, double defaultValue) {
+    double cur = entry.getDouble(Double.NaN);
 
-  // A method to spin up the launcher roller while spinning the feeder roller to
-  // push Fuel away from the launcher
-  public void spinUp() {
-    feederRoller
-        .setVoltage(SmartDashboard.getNumber("Spin-up feeder roller value", SPIN_UP_FEEDER_VOLTAGE));
-    intakeLauncherRoller
-        .setVoltage(SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
+    if (Double.isNaN(cur))
+      entry.setDouble(defaultValue);
   }
 
-  // A command factory to turn the spinUp method into a command that requires this
-  // subsystem
+  public boolean launcherAtSpeed() {
+    double rpm       = Math.abs(launcherEncoder.getVelocity()); // REV NEO velocity is in RPM. TODO: Confirm.
+    double targetRPM = launcherAtSpeedRPM.getDouble(DEFAULT_AT_SPEED_RPM);
+    double tolRPM    = launcherAtSpeedTolRPM.getDouble(DEFAULT_AT_SPEED_TOL_RPM);
+    double debounceS = launcherAtSpeedDebounceS.getDouble(DEFAULT_AT_SPEED_DEBOUNCE_S);
+
+    boolean inBand = rpm >= (targetRPM - tolRPM);
+
+    if (inBand) {
+      if (!atSpeedTimer.isRunning()) {
+        atSpeedTimer.restart();
+      }
+    } else {
+      atSpeedTimer.stop();
+      atSpeedTimer.reset();
+    }
+
+    return atSpeedTimer.hasElapsed(debounceS);
+  }
+
+  // A command factory to turn the spinUp method into a command that requires this subsystem
   public Command spinUpCommand() {
-    return this.run(() -> spinUp());
+    return this.runEnd(this::spinUp, this::stop);
   }
 
-  // A command factory to turn the launch method into a command that requires this
-  // subsystem
+  // A command factory to turn the launch method into a command that requires this subsystem
   public Command launchCommand() {
-    return this.run(() -> launch());
+    return this.runEnd(this::launch, this::stop);
+  }
+
+  // A command factory to turn the stop method into a command that requires this subsystem
+  public Command stopCommand() {
+    return this.run(() -> stop());
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    launcherRpmEntry.setDouble(launcherEncoder.getVelocity());
+    atSpeedEntry.setBoolean(launcherAtSpeed());
+
+    // SparkMax.getAppliedOutput() is [-1..1], multiply by bus voltage to approximate volts.
+    feederAppliedVoltsEntry.setDouble(feederRoller.getAppliedOutput() * feederRoller.getBusVoltage());
+    launcherAppliedVoltsEntry.setDouble(intakeLauncherRoller.getAppliedOutput() * intakeLauncherRoller.getBusVoltage());
   }
 }
