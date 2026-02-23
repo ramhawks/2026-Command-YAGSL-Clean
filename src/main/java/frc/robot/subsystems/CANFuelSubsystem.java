@@ -11,7 +11,6 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -156,7 +155,7 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A command factory to turn the stop method into a command that requires this subsystem
   public Command stopCommand() {
-    return this.run(() -> stop());
+    return this.runOnce(this::stop);
   }
 
   @Override
