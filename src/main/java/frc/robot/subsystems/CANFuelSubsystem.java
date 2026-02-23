@@ -20,8 +20,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class CANFuelSubsystem extends SubsystemBase {
-  private final SparkMax feederRoller;
-  private final SparkMax intakeLauncherRoller;
+  private final SparkMax feederRoller;          // shooter
+  private final SparkMax intakeLauncherRoller;  // hopper
 
   // Encoder for the launcher roller.
   private final RelativeEncoder launcherEncoder;
@@ -100,8 +100,8 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to set the rollers to values for launching.
   public void launch() {
-    feederRoller.setVoltage(launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
-    intakeLauncherRoller.setVoltage(launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
+    feederRoller.setVoltage(launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE)); // shooter
+    intakeLauncherRoller.setVoltage(launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE)); // hopper
   }
 
   // A method to spin up the launcher roller while spinning the feeder roller to push Fuel away from the launcher
