@@ -31,9 +31,9 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
@@ -64,12 +64,13 @@ public class RobotContainer {
 
   private double speedScale = 1.0; // Default speed scale (100%)
 
-  // Example of a config value you can edit in Elastic.
-  // We're using NetworkTables because Shuffleboard and SmartDashboard (app) are being deprecated in favor of Elastic and AdvantageScope.
-  private final NetworkTableEntry onRedSideEntry = NetworkTableInstance
-      .getDefault()
-      .getTable("Config")
-      .getEntry("OnRedSide");
+  // Telemetry table for drive-related state
+  private final NetworkTable driveTelemetryTable = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Drive");
+  private final NetworkTableEntry speedScaleEntry = driveTelemetryTable.getEntry("SpeedScale");
+  private final NetworkTableEntry slowModeEntry   = driveTelemetryTable.getEntry("SlowMode");
+
+  // Config table for OnRedSide
+  private final NetworkTableEntry onRedSideEntry = NetworkTableInstance.getDefault().getTable("Config").getEntry("OnRedSide");
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -96,6 +97,10 @@ public class RobotContainer {
     // Use addOption when you want to add non-PathPlanner autonomous commands to the chooser.
     // Add buildTestCommand(): Drive foward 2 meters, turn 360 degrees, then shoot for 3 seconds.
     autoChooser.addOption("Test: Forward 2m + turn 360 + shoot 3s", buildTestCommand());
+
+    // Write initial values to the Network Tables.
+    speedScaleEntry.setDouble(speedScale);
+    slowModeEntry.setBoolean(false);
   }
 
   /**
@@ -153,10 +158,18 @@ public class RobotContainer {
         .onTrue(m_swerveSubsystem.runOnce(() -> m_swerveSubsystem.zeroGyro()));
 
     // A BUTTON: TOGGLE SPEED SCALE (slow mode)
-    // Press the A button on the driver controller to toggle between full speed and half speed.
+    // Press the A button on the driver controller to toggle between full speed and half speed. Write the values to the network tables.
     m_driverController.a()
-        .onTrue(new InstantCommand(() -> speedScale = 0.5))
-        .onFalse(new InstantCommand(() -> speedScale = 1.0));
+        .onTrue(Commands.runOnce(() -> {
+          speedScale = 0.5;
+          speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          slowModeEntry.setBoolean(true);
+        }))
+        .onFalse(Commands.runOnce(() -> {
+          speedScale = 1.0;
+          speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          slowModeEntry.setBoolean(false);
+        }));
 
     // DRIVE COMMANDS
     // TESTING
