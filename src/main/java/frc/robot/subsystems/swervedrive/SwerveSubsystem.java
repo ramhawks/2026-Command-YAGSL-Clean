@@ -34,6 +34,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 import frc.robot.Constants;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
@@ -65,6 +68,24 @@ public class SwerveSubsystem extends SubsystemBase
   private final boolean visionDriveTest = false; // Enable vision odometry updates while driving.
   private Vision vision;                         // PhotonVision class to keep an accurate odometry.
   private final Field2d field = new Field2d();
+
+  // NT table for scalar telemetry
+  private final NetworkTable swerveTelemetry = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Swerve");
+  
+  // Pose / heading
+  private final NetworkTableEntry poseXEntry      = swerveTelemetry.getEntry("PoseX");
+  private final NetworkTableEntry poseYEntry      = swerveTelemetry.getEntry("PoseY");
+  private final NetworkTableEntry headingDegEntry = swerveTelemetry.getEntry("HeadingDeg");
+  
+  // Robot-relative chassis speeds
+  private final NetworkTableEntry vxEntry     = swerveTelemetry.getEntry("VxMps");
+  private final NetworkTableEntry vyEntry     = swerveTelemetry.getEntry("VyMps");
+  private final NetworkTableEntry omegaEntry  = swerveTelemetry.getEntry("OmegaRadps");
+  
+  // (Optional) field-relative chassis speeds
+  private final NetworkTableEntry fVxEntry    = swerveTelemetry.getEntry("FieldVxMps");
+  private final NetworkTableEntry fVyEntry    = swerveTelemetry.getEntry("FieldVyMps");
+  private final NetworkTableEntry fOmegaEntry = swerveTelemetry.getEntry("FieldOmegaRadps");
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -146,9 +167,24 @@ public class SwerveSubsystem extends SubsystemBase
   {
     field.setRobotPose(getPose());
 
+    Pose2d pose = getPose();
+    poseXEntry.setDouble(pose.getX());
+    poseYEntry.setDouble(pose.getY());
+    headingDegEntry.setDouble(getHeading().getDegrees());
+  
+    ChassisSpeeds robot = getRobotVelocity();
+    vxEntry.setDouble(robot.vxMetersPerSecond);
+    vyEntry.setDouble(robot.vyMetersPerSecond);
+    omegaEntry.setDouble(robot.omegaRadiansPerSecond);
+  
+    // Optional (but common)
+    ChassisSpeeds fieldVel = getFieldVelocity();
+    fVxEntry.setDouble(fieldVel.vxMetersPerSecond);
+    fVyEntry.setDouble(fieldVel.vyMetersPerSecond);
+    fOmegaEntry.setDouble(fieldVel.omegaRadiansPerSecond);
+
     // When vision is enabled, manually sync odometry with vision processing. This ensures the robot's Pose (position on field) is accurate.
-    if (visionDriveTest)
-    {
+    if (visionDriveTest) {
       swerveDrive.updateOdometry();
       vision.updatePoseEstimation(swerveDrive);
     }
