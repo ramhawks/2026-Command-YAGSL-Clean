@@ -186,7 +186,8 @@ public class RobotContainer {
     // controls are relative to the field rather than the robot's current orientation. This is generally more intuitive for drivers,
     // but may require more tuning to get right.
 
-    // BASE Drive command with speed scaling applied to translation, but not rotation.
+    // BASE 
+    // Drive command with speed scaling applied to translation, but not rotation.
     /* Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
         () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND) * speedScale,
         () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND) * speedScale,
@@ -194,15 +195,18 @@ public class RobotContainer {
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
-    // SQUARED Drive command with speed scaling applied to translation, but not rotation and with squared joystick input shaping.
+    // SQUARED
+    // Drive command with speed scaling applied to translation, but not rotation and with squared joystick input shaping.
+    // Shape axis can shape as square or cube. 
     Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
-        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND)) * speedScale,
-        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND)) * speedScale,
+        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), false) * speedScale,
+        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), false) * speedScale,
         // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale
 
-    // EXPO Drive command with speed scaling applied to translation, but not rotation and with exponential joystick input shaping.
+    // EXPO
+    // Drive command with speed scaling applied to translation, but not rotation and with exponential joystick input shaping.
     /* Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
         () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
         () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
@@ -210,8 +214,8 @@ public class RobotContainer {
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
-    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
-    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
+    //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
+    m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
   /**
@@ -222,23 +226,17 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     return autoChooser.getSelected();
+  }
 
-    // This creates a sequence: Drive forward, wait 1 second, then drive back.
-    // return new SequentialCommandGroup(
-    //   new DriveDistance(1, m_swerveSubsystem),  // Move 1 meter
-    //   new WaitCommand(1.0),                    // Pause
-    //   new DriveDistance(-1, m_swerveSubsystem)         // Return
-    // );
+  public String getSelectedAutoName() {
+    Command selected = autoChooser.getSelected();
+    return (selected != null) ? selected.getName() : "None";
   }
 
   // Square or Cube the input while preserving the sign, to give finer control at low speeds. Joystick input shaping.
-  private static double shapeAxis(double value) {
-    // value is expected in [-1, 1]
-    // Square
-    return Math.copySign(value * value, value);
-
-    // Cube
-    // return value * value * value;
+  // value is expected in [-1, 1]
+  private static double shapeAxis(double value, boolean useCube) {
+    return (useCube) ? Math.copySign(value * value * value, value) : Math.copySign(value * value, value);
   }
 
   // Exponential shaping of the input, with a tunable exponent. Joystick input shaping.

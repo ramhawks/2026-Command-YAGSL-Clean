@@ -9,9 +9,9 @@
         "containers": [
           {
             "title": "Robot",
-            "x": 512.0,
+            "x": 0.0,
             "y": 0.0,
-            "width": 256.0,
+            "width": 384.0,
             "height": 256.0,
             "type": "Text Display",
             "properties": {
@@ -23,7 +23,7 @@
           },
           {
             "title": "SlowMode",
-            "x": 1024.0,
+            "x": 640.0,
             "y": 0.0,
             "width": 128.0,
             "height": 128.0,
@@ -40,7 +40,7 @@
           },
           {
             "title": "SpeedScale",
-            "x": 896.0,
+            "x": 512.0,
             "y": 0.0,
             "width": 128.0,
             "height": 128.0,
@@ -54,7 +54,7 @@
           },
           {
             "title": "HeadingDeg",
-            "x": 768.0,
+            "x": 384.0,
             "y": 0.0,
             "width": 128.0,
             "height": 128.0,
@@ -68,7 +68,7 @@
           },
           {
             "title": "VxMps",
-            "x": 768.0,
+            "x": 256.0,
             "y": 256.0,
             "width": 128.0,
             "height": 128.0,
@@ -82,7 +82,7 @@
           },
           {
             "title": "VyMps",
-            "x": 768.0,
+            "x": 256.0,
             "y": 384.0,
             "width": 128.0,
             "height": 128.0,
@@ -96,7 +96,7 @@
           },
           {
             "title": "AtSpeed",
-            "x": 512.0,
+            "x": 640.0,
             "y": 384.0,
             "width": 128.0,
             "height": 128.0,
@@ -113,9 +113,9 @@
           },
           {
             "title": "FeederAppliedVolts",
-            "x": 896.0,
+            "x": 384.0,
             "y": 256.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -127,9 +127,9 @@
           },
           {
             "title": "LauncherAppliedVolts",
-            "x": 896.0,
+            "x": 384.0,
             "y": 384.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -141,7 +141,7 @@
           },
           {
             "title": "LauncherRPM",
-            "x": 1024.0,
+            "x": 640.0,
             "y": 256.0,
             "width": 128.0,
             "height": 128.0,
@@ -155,9 +155,9 @@
           },
           {
             "title": "IntakeFeederVolts",
-            "x": 1280.0,
+            "x": 768.0,
             "y": 0.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -169,9 +169,9 @@
           },
           {
             "title": "IntakeLauncherVolts",
-            "x": 1280.0,
+            "x": 768.0,
             "y": 128.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -183,9 +183,9 @@
           },
           {
             "title": "LaunchFeederVolts",
-            "x": 1280.0,
+            "x": 768.0,
             "y": 256.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -197,9 +197,9 @@
           },
           {
             "title": "LaunchLauncherVolts",
-            "x": 1280.0,
-            "y": 384.0,
-            "width": 128.0,
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -211,9 +211,9 @@
           },
           {
             "title": "LauncherAtSpeedRPM",
-            "x": 1408.0,
+            "x": 1024.0,
             "y": 0.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -225,9 +225,9 @@
           },
           {
             "title": "LauncherAtSpeedTolRPM",
-            "x": 1408.0,
+            "x": 1024.0,
             "y": 128.0,
-            "width": 128.0,
+            "width": 256.0,
             "height": 128.0,
             "type": "Text Display",
             "properties": {
@@ -239,30 +239,13 @@
           },
           {
             "title": "OnRedSide",
-            "x": 512.0,
+            "x": 0.0,
             "y": 256.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
             "properties": {
               "topic": "/Config/OnRedSide",
-              "period": 0.06,
-              "data_type": "boolean",
-              "true_color": 4283215696,
-              "false_color": 4294198070,
-              "true_icon": "None",
-              "false_icon": "None"
-            }
-          },
-          {
-            "title": "IsRedAlliance",
-            "x": 640.0,
-            "y": 256.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Boolean Box",
-            "properties": {
-              "topic": "/FMSInfo/IsRedAlliance",
               "period": 0.06,
               "data_type": "boolean",
               "true_color": 4283215696,
@@ -278,30 +261,7 @@
       "name": "Autonomous",
       "grid_layout": {
         "layouts": [],
-        "containers": [
-          {
-            "title": "value",
-            "x": 512.0,
-            "y": 128.0,
-            "width": 128.0,
-            "height": 128.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/PathPlanner/currentPose",
-              "period": 0.06,
-              "data_type": "double",
-              "struct_meta": {
-                "path": [
-                  "rotation",
-                  "value"
-                ],
-                "schema_name": "Pose2d",
-                "type": "double"
-              },
-              "show_submit_button": false
-            }
-          }
-        ]
+        "containers": []
       }
     }
   ]
