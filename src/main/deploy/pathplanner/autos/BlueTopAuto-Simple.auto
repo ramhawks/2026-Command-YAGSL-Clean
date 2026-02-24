@@ -15,6 +15,12 @@
           "data": {
             "name": "AutoBotHub"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BlueHub11-BlueDepot3"
+          }
         }
       ]
     }
