@@ -59,6 +59,12 @@ public class Robot extends TimedRobot {
     // Add a camera stream to the dashboard.
     // Elastic only supports adding camera streams that are published to the RoboRIO's Camera Server.
     //CameraServer.startAutomaticCapture();
+
+    // Initialize auto values on the dashboard.
+    autoEnabled.setBoolean(false);
+    autoScheduled.setBoolean(false);
+    autoCommandName.setString("None");
+    autoSelectedName.setString("None");
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -69,7 +75,10 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    // Keep the selected auto name updated on the dashboard while disabled, so it can be seen before starting auto.
+    autoSelectedName.setString(m_robotContainer.getSelectedAutoName());
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
@@ -96,7 +105,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     // Make sure the autonomous command stops running when teleop starts.
-    // If you want the autonomous to continue until interrupted by another command, remove this line or comment it out.
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
