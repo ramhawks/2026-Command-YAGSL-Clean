@@ -29,17 +29,6 @@ public final class Constants {
     public static final double TRANSLATION_EXPO = 0.5; // Exponential shaping factor for translation joystick input (0 = no shaping, 1 = full shaping)
   }
 
-  public static class IntakeConstants {
-    public static final int INTAKE_MOTOR_PORT = 19;  // Adjust port as needed
-    public static final double INTAKE_SPEED = 0.8;  // 0-1.0
-  }
-
-  public static class ShooterConstants {
-    public static final int SHOOTER_MOTOR_PORT = 18;  // Adjust port as needed
-    public static final double SHOOT_SPEED = 0.8;    // 0-1.0
-    public static final double SPIN_UP_SECONDS = 1.0; // Time to spin up shooter before launching
-  }
-
   public static final class FuelConstants {
     // Motor controller IDs for Fuel Mechanism motors
     public static final int FEEDER_MOTOR_ID = 18;

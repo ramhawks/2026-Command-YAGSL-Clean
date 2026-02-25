@@ -10,8 +10,6 @@ import frc.robot.commands.Autos;
 import frc.robot.commands.DriveDistance;
 import frc.robot.commands.AutoBotHub;
 import frc.robot.subsystems.CANFuelSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 import edu.wpi.first.math.MathUtil;
@@ -116,37 +114,24 @@ public class RobotContainer {
     // *********  OPERATOR CONTROLS  *********
     // LEFT BUMPER: INTAKE
     // While the left bumper on operator controller is held, intake Fuel at the default speed. When the button is released, stop.
-    //m_operatorController.leftBumper()
-    //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.intakeCommand(), () -> m_intakeSubsystem.stop()));
     m_operatorController.leftBumper()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.intake(), () -> ballSubsystem.stop()));
-
-    // While the left bumper on driver controller is held, intake Fuel at 50% speed. When the button is released, stop.
-    //m_driverController.leftBumper()
-    //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.setSpeed(0.5), () -> m_intakeSubsystem.stop()));
     
-    // RIGHT BUMPER: SHOOT
-    // While the right bumper on the operator controller is held, launch fuel at full speed. When the button is released, stop.
-    //m_operatorController.rightBumper()
-    //    .whileTrue(m_shooterSubsystem.runEnd(() -> m_shooterSubsystem.shootCommand(), () -> m_shooterSubsystem.stop()));
-    
+    // RIGHT BUMPER: SHOOT    
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    //m_operatorController.rightBumper()
-    //    .whileTrue(ballSubsystem.spinUpCommand().withTimeout(0.5)
-    //    .andThen(ballSubsystem.launchCommand())
-    //    .finallyDo(() -> ballSubsystem.stop()));
     m_operatorController.rightBumper().whileTrue(
           Commands.sequence(
+            // Spin-up the feeder and launcher
             ballSubsystem.spinUpCommand(),
+            // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
             Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+            // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
             ballSubsystem.launchCommand()
           )
     );      
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake
-    //m_operatorController.a()
-    //    .whileTrue(m_intakeSubsystem.runEnd(() -> m_intakeSubsystem.reverseIntakeCommand(), () -> m_intakeSubsystem.stop()));
     m_operatorController.a()
         .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
     // ************************************
@@ -296,7 +281,7 @@ public class RobotContainer {
           Pose2d start = startPoseRef.get();
           Pose2d current = m_swerveSubsystem.getPose();
 
-          // delta pose in the start frame; X is “forward” distance traveled
+          // delta pose in the start frame; X is "forward" distance traveled
           double traveled = current.relativeTo(start).getX();
           double output = distancePid.calculate(traveled, meters);
 
