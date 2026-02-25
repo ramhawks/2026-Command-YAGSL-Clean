@@ -10,8 +10,6 @@ import frc.robot.commands.Autos;
 import frc.robot.commands.DriveDistance;
 import frc.robot.commands.AutoBotHub;
 import frc.robot.subsystems.CANFuelSubsystem;
-import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 import edu.wpi.first.math.MathUtil;
@@ -296,7 +294,7 @@ public class RobotContainer {
           Pose2d start = startPoseRef.get();
           Pose2d current = m_swerveSubsystem.getPose();
 
-          // delta pose in the start frame; X is “forward” distance traveled
+          // delta pose in the start frame; X is "forward" distance traveled
           double traveled = current.relativeTo(start).getX();
           double output = distancePid.calculate(traveled, meters);
 
