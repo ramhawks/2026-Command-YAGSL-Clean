@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -21,11 +22,12 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
-
-  private final NetworkTableEntry autoEnabled      = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Auto").getEntry("IsAutoEnabled");
-  private final NetworkTableEntry autoScheduled    = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Auto").getEntry("IsAutoCommandScheduled");
-  private final NetworkTableEntry autoCommandName  = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Auto").getEntry("CommandName");
-  private final NetworkTableEntry autoSelectedName = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Auto").getEntry("SelectedName");
+  
+  private final NetworkTable autos = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Auto");
+  private final NetworkTableEntry autoEnabled      = autos.getEntry("IsAutoEnabled");
+  private final NetworkTableEntry autoScheduled    = autos.getEntry("IsAutoCommandScheduled");
+  private final NetworkTableEntry autoCommandName  = autos.getEntry("CommandName");
+  private final NetworkTableEntry autoSelectedName = autos.getEntry("SelectedName");
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -78,13 +80,14 @@ public class Robot extends TimedRobot {
 
     autoEnabled.setBoolean(DriverStation.isAutonomousEnabled());
     autoScheduled.setBoolean(false);
-    autoCommandName.setString("");
+    autoCommandName.setString("Bob");
     autoSelectedName.setString(m_robotContainer.getSelectedAutoName()); // helper below
 
     if (m_autonomousCommand != null) {
+      autoScheduled.setBoolean(true);
       autoCommandName.setString(auto.getName());
       auto.schedule();
-      autoScheduled.setBoolean(true);
+      
       m_autonomousCommand = auto;
     }
   }
