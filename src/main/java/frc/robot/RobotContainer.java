@@ -119,14 +119,13 @@ public class RobotContainer {
     
     // RIGHT BUMPER: SHOOT    
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    //m_operatorController.rightBumper()
-    //    .whileTrue(ballSubsystem.spinUpCommand().withTimeout(0.5)
-    //    .andThen(ballSubsystem.launchCommand())
-    //    .finallyDo(() -> ballSubsystem.stop()));
     m_operatorController.rightBumper().whileTrue(
           Commands.sequence(
+            // Spin-up the feeder and launcher
             ballSubsystem.spinUpCommand(),
+            // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
             Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+            // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
             ballSubsystem.launchCommand()
           )
     );      
