@@ -9,6 +9,7 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
 import frc.robot.commands.DriveDistance;
 import frc.robot.commands.AutoBotHub;
+import frc.robot.subsystems.AgitatorRelay;
 import frc.robot.subsystems.CANFuelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
@@ -119,16 +120,19 @@ public class RobotContainer {
     
     // RIGHT BUMPER: SHOOT    
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    m_operatorController.rightBumper().whileTrue(
-          Commands.sequence(
-            // Spin-up the feeder and launcher
-            ballSubsystem.spinUpCommand(),
-            // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
-            Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
-            // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
-            ballSubsystem.launchCommand()
-          )
-    );      
+    final AgitatorRelay agitator = new AgitatorRelay(Constants.FuelConstants.AGITATOR_CHANNEL_ID);
+
+    Command shootCmd = Commands.sequence(
+      // Spin-up the feeder and launcher
+      ballSubsystem.spinUpCommand(),
+      // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
+      Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+      // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
+      ballSubsystem.launchCommand()
+    );
+    
+    m_operatorController.rightBumper()
+      .whileTrue(shootCmd.deadlineWith(agitator.runWhileHelCommand()));      
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake

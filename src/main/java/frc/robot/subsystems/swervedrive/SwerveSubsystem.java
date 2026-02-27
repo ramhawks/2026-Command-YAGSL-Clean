@@ -466,7 +466,7 @@ public class SwerveSubsystem extends SubsystemBase
           Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumChassisAngularVelocity(),
           true,
           false);
-    }).finallyDo(() -> swerveDrive.drive(new Translation2d(0,0), 0, true, false)); // prevent a “last command persists” when interrupted
+    }).finallyDo(() -> swerveDrive.drive(new Translation2d(0,0), 0, true, false)); // prevent a "last command persists" when interrupted
   }
 
   /**
