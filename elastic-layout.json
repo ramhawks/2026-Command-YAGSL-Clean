@@ -285,7 +285,7 @@
           {
             "title": "IsAutoCommandScheduled",
             "x": 0.0,
-            "y": 128.0,
+            "y": 256.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -302,7 +302,7 @@
           {
             "title": "IsAutoEnabled",
             "x": 128.0,
-            "y": 128.0,
+            "y": 256.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -318,7 +318,7 @@
           },
           {
             "title": "Field",
-            "x": 384.0,
+            "x": 512.0,
             "y": 0.0,
             "width": 640.0,
             "height": 384.0,
@@ -339,7 +339,7 @@
           },
           {
             "title": "LauncherRPM",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 0.0,
             "width": 128.0,
             "height": 128.0,
@@ -353,7 +353,7 @@
           },
           {
             "title": "AtSpeed",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 128.0,
             "width": 128.0,
             "height": 128.0,
@@ -370,8 +370,8 @@
           },
           {
             "title": "OnRedSide",
-            "x": 0.0,
-            "y": 256.0,
+            "x": 1280.0,
+            "y": 0.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -383,6 +383,76 @@
               "false_color": 4294198070,
               "true_icon": "None",
               "false_icon": "None"
+            }
+          },
+          {
+            "title": "Command Name",
+            "x": 0.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Auto/CommandName",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Selected Auto",
+            "x": 256.0,
+            "y": 128.0,
+            "width": 256.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Auto/SelectedName",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PoseX",
+            "x": 512.0,
+            "y": 384.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Swerve/PoseX",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PoseY",
+            "x": 640.0,
+            "y": 384.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Swerve/PoseY",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "HeadingDeg",
+            "x": 768.0,
+            "y": 384.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Telemetry/Swerve/HeadingDeg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
             }
           }
         ]
