@@ -103,7 +103,9 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to set the rollers to values for launching.
   public void launch() {
-    feederRoller.setVoltage(feederScale * -launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
+    double barfScale = feederScale * LAUNCHING_FEEDER_VOLTAGE;
+    launchFeederVolts.setDouble(barfScale);
+    feederRoller.setVoltage(barfScale);
     intakeLauncherRoller.setVoltage(-launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
   }
 
@@ -115,6 +117,7 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to stop the rollers
   public void stop() {
+    launchFeederVolts.setDouble(LAUNCHING_FEEDER_VOLTAGE);
     feederRoller.set(0);
     intakeLauncherRoller.set(0);
   }
@@ -148,17 +151,17 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A command factory to turn the spinUp method into a command that requires this subsystem
   public Command spinUpCommand() {
-    return this.runEnd(this::spinUp, this::stop);
+    return this.run(this::spinUp);
   }
 
   // A command factory to turn the launch method into a command that requires this subsystem
   public Command launchCommand() {
-    return this.runEnd(this::launch, this::stop);
+    return this.run(this::launch);
   }
 
   // A command factory to turn the stop method into a command that requires this subsystem
   public Command stopCommand() {
-    return this.runOnce(this::stop);
+    return this.run(this::stop);
   }
 
   public Command ejectCommand() {

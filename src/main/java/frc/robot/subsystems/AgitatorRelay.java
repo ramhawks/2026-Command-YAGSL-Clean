@@ -28,4 +28,9 @@ public class AgitatorRelay extends SubsystemBase {
     public Command runDuring(Command other) {
         return other.deadlineWith(runWhileHelCommand());
     }
+
+    // Run the Agitator 3000 for a finite period of time
+    // public Command runSetIntervalCommand(int fraction) {
+    //     return null;
+    // }
 }

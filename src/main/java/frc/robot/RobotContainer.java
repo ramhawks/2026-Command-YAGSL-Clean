@@ -62,11 +62,15 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser;
 
   private double speedScale = 1.0; // Default speed scale (100%)
+  private double shooter_speedScale = 1.0;
 
   // Telemetry table for drive-related state
   private final NetworkTable driveTelemetryTable = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Drive");
   private final NetworkTableEntry speedScaleEntry = driveTelemetryTable.getEntry("SpeedScale");
   private final NetworkTableEntry slowModeEntry   = driveTelemetryTable.getEntry("SlowMode");
+
+  private final NetworkTable operatorTelemetryTable = NetworkTableInstance.getDefault().getTable("Telemetry").getSubTable("Operator");
+  private final NetworkTableEntry shooter_speedScaleEntry = operatorTelemetryTable.getEntry("ShooterSpeedScale");
 
   // Config table for OnRedSide
   private final NetworkTableEntry onRedSideEntry = NetworkTableInstance.getDefault().getTable("Config").getEntry("OnRedSide");
@@ -100,6 +104,7 @@ public class RobotContainer {
     // Write initial values to the Network Tables.
     speedScaleEntry.setDouble(speedScale);
     slowModeEntry.setBoolean(false);
+    shooter_speedScaleEntry.setDouble(shooter_speedScale);
   }
 
   /**
@@ -124,14 +129,14 @@ public class RobotContainer {
 
     Command shootCmd = Commands.sequence(
       // Spin-up the feeder and launcher
-      ballSubsystem.spinUpCommand(),
+      // ballSubsystem.spinUpCommand().until(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
       // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
-      Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+      
       // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
       ballSubsystem.launchCommand()
     );
     
-    m_operatorController.rightBumper().whileTrue(shootCmd);      
+    m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());      
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake and run the agitator
@@ -140,19 +145,19 @@ public class RobotContainer {
     // B BUTTON: AGITATE
     m_operatorController.b().whileTrue(agitator.runWhileHelCommand());
 
-    // Y BUTTON: SLOW MO - slow down the feeder 25%
+    // POV LEFT : SLOW MO - slow down the feeder 50%
     // ************************************
-    m_operatorController.y()
+    m_operatorController.povLeft()
         .onTrue(Commands.runOnce(() -> {
-          speedScale = 0.75;
-          ballSubsystem.setFeederScale(speedScale);
-          //speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          shooter_speedScale = 0.5;
+          ballSubsystem.setFeederScale(shooter_speedScale);
+          shooter_speedScaleEntry.setDouble(shooter_speedScale);  // write the speed scale to the network tables
           //slowModeEntry.setBoolean(true);
         }))
         .onFalse(Commands.runOnce(() -> {
-          speedScale = 1.0;
-          ballSubsystem.setFeederScale(speedScale);
-          //speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          shooter_speedScale = 1.0;
+          ballSubsystem.setFeederScale(shooter_speedScale);
+          shooter_speedScaleEntry.setDouble(shooter_speedScale);  // write the speed scale to the network tables
           //slowModeEntry.setBoolean(false);
         }));
 
@@ -220,6 +225,7 @@ public class RobotContainer {
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
     m_swerveSubsystem.setDefaultCommand(driveFieldOrientedAngVel);
+    ballSubsystem.setDefaultCommand(ballSubsystem.stopCommand());
     //m_swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngle);
   }
 
