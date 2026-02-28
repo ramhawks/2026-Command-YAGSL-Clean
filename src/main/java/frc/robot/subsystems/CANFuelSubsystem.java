@@ -14,6 +14,7 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -27,6 +28,8 @@ public class CANFuelSubsystem extends SubsystemBase {
   private final RelativeEncoder launcherEncoder;
 
   private final Timer atSpeedTimer = new Timer();
+
+  private double feederScale = 1.0;
 
   // ************  NT Tables  ************
   private final NetworkTable tuningFuel = NetworkTableInstance.getDefault().getTable("Tuning").getSubTable("Fuel");
@@ -100,7 +103,7 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to set the rollers to values for launching.
   public void launch() {
-    feederRoller.setVoltage(-launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
+    feederRoller.setVoltage(feederScale * -launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
     intakeLauncherRoller.setVoltage(-launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
   }
 
@@ -156,6 +159,14 @@ public class CANFuelSubsystem extends SubsystemBase {
   // A command factory to turn the stop method into a command that requires this subsystem
   public Command stopCommand() {
     return this.runOnce(this::stop);
+  }
+
+  public Command ejectCommand() {
+    return this.runEnd(this::eject, this::stop);
+  }
+
+  public void setFeederScale(double scale) {
+    feederScale = MathUtil.clamp(scale, 0,1);
   }
 
   @Override

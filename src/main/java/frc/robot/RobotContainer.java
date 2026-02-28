@@ -131,14 +131,30 @@ public class RobotContainer {
       ballSubsystem.launchCommand()
     );
     
-    m_operatorController.rightBumper()
-      .whileTrue(shootCmd.deadlineWith(agitator.runWhileHelCommand()));      
+    m_operatorController.rightBumper().whileTrue(shootCmd);      
 
     // A BUTTON: REVERSE INTAKE (EJECT)
-    // While the A button is held on the operator controller, eject fuel back out the intake
-    m_operatorController.a()
-        .whileTrue(ballSubsystem.runEnd(() -> ballSubsystem.eject(), () -> ballSubsystem.stop()));
+    // While the A button is held on the operator controller, eject fuel back out the intake and run the agitator
+    m_operatorController.a().whileTrue(ballSubsystem.ejectCommand());
+    
+    // B BUTTON: AGITATE
+    m_operatorController.b().whileTrue(agitator.runWhileHelCommand());
+
+    // Y BUTTON: SLOW MO - slow down the feeder 25%
     // ************************************
+    m_operatorController.y()
+        .onTrue(Commands.runOnce(() -> {
+          speedScale = 0.75;
+          ballSubsystem.setFeederScale(speedScale);
+          //speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          //slowModeEntry.setBoolean(true);
+        }))
+        .onFalse(Commands.runOnce(() -> {
+          speedScale = 1.0;
+          ballSubsystem.setFeederScale(speedScale);
+          //speedScaleEntry.setDouble(speedScale);  // write the speed scale to the network tables
+          //slowModeEntry.setBoolean(false);
+        }));
 
     // *********  DRIVE CONTROLS  *********
     // START BUTTON: ZERO GYRO
@@ -166,8 +182,8 @@ public class RobotContainer {
     // Not field-oriented. Controls are relative to the robot's current orientation. 
     // Drive the robot with the left stick for translation and the right stick for rotation. Useful for testing and tuning the swerve drive
     Command driveFieldOrientedAngVel = m_swerveSubsystem.driveCommand(
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+        () -> speedScale * -MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+        () -> speedScale * -MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
         () -> -MathUtil.applyDeadband(m_driverController.getRightX(), 0.15));
 
     // COMPETITION
@@ -188,8 +204,8 @@ public class RobotContainer {
     // Drive command with speed scaling applied to translation, but not rotation and with squared joystick input shaping.
     // Shape axis can shape as square or cube. 
     Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
-        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), false) * speedScale,
-        () -> -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), false) * speedScale,
+        () -> speedScale * -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), false) * speedScale,
+        () -> speedScale * -shapeAxis(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), false) * speedScale,
         // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale
