@@ -103,10 +103,10 @@ public class CANFuelSubsystem extends SubsystemBase {
 
   // A method to set the rollers to values for launching.
   public void launch() {
-    double barfScale = feederScale * LAUNCHING_FEEDER_VOLTAGE;
+    double barfScale = feederScale * LAUNCHING_LAUNCHER_VOLTAGE;
     launchFeederVolts.setDouble(barfScale);
-    feederRoller.setVoltage(barfScale);
-    intakeLauncherRoller.setVoltage(-launchLauncherVolts.getDouble(LAUNCHING_LAUNCHER_VOLTAGE));
+    feederRoller.setVoltage(launchFeederVolts.getDouble(LAUNCHING_FEEDER_VOLTAGE));
+    intakeLauncherRoller.setVoltage(barfScale);
   }
 
   // A method to spin up the launcher roller while spinning the feeder roller to push Fuel away from the launcher

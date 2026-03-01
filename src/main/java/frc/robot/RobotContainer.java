@@ -149,7 +149,7 @@ public class RobotContainer {
     // ************************************
     m_operatorController.povLeft()
         .onTrue(Commands.runOnce(() -> {
-          shooter_speedScale = 0.5;
+          shooter_speedScale = 0.2;
           ballSubsystem.setFeederScale(shooter_speedScale);
           shooter_speedScaleEntry.setDouble(shooter_speedScale);  // write the speed scale to the network tables
           //slowModeEntry.setBoolean(true);
@@ -219,8 +219,8 @@ public class RobotContainer {
     // Drive command with speed scaling applied to translation, but not rotation and with exponential joystick input shaping.
     /* Command driveFieldOrientedDirectAngle = m_swerveSubsystem.driveCommand(
         () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
-        () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), DriverConstants.TRANSLATION_EXPO) * speedScale,
-        // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower speeds. 
+        () -> -expo(MathUtil.applyDeadband(m_driverController.getLeftX(), OperatorConstants.LEFT_X_DEADBAND), DriverConstants.) * speedScale,
+        // Add speedScale to the rotation as well (right stick). Useful to reduce the rotation speed for better control at lower sTRANSLATION_EXPOpeeds. 
         () -> MathUtil.applyDeadband(m_driverController.getRightX(), 0.15),   // * speedScale
         () -> -MathUtil.applyDeadband(m_driverController.getRightY(), 0.15)); // * speedScale */
 
@@ -340,6 +340,7 @@ public class RobotContainer {
     );
     
     NamedCommands.registerCommand("AutoBotHub", autoBotHub);
+    //NamedCommands.registerCommand("simple", Commands.run(()->{System.out.println("hello world");},ballSubsystem));
     // ************************************
 
     // **********  SomeCommand  *********

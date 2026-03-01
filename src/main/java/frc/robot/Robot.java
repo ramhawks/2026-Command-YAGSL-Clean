@@ -92,10 +92,11 @@ public class Robot extends TimedRobot {
     autoCommandName.setString("Bob");
     autoSelectedName.setString(m_robotContainer.getSelectedAutoName()); // helper below
 
-    if (m_autonomousCommand != null) {
+    if (auto != null) {
       autoScheduled.setBoolean(true);
       autoCommandName.setString(auto.getName());
-      auto.schedule();
+     // auto.schedule();
+     CommandScheduler.getInstance().schedule(auto);
       
       m_autonomousCommand = auto;
     }
@@ -103,7 +104,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {

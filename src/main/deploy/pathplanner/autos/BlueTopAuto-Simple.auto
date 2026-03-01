@@ -9,18 +9,6 @@
           "data": {
             "pathName": "BlueTop-BlueHub10"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "AutoBotHub"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "BlueHub11-BlueDepot3"
-          }
         }
       ]
     }
