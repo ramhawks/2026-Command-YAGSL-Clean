@@ -333,13 +333,13 @@ public class RobotContainer {
 
     // *********  AutoBotHub  *********
     // Command for shooting FUEL into the hub during autonomous.
-    Command autoBotHub = Commands.sequence(
-      ballSubsystem.spinUpCommand(),
-      Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
-      ballSubsystem.launchCommand().withTimeout(0.75)
-    );
+    // Command autoBotHub = Commands.sequence(
+    //   ballSubsystem.spinUpCommand(),
+    //   Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+    //   ballSubsystem.launchCommand().withTimeout(0.75)
+    // );
     
-    NamedCommands.registerCommand("AutoBotHub", autoBotHub);
+    NamedCommands.registerCommand("AutoBotHub", ballSubsystem.launchCommand());
     //NamedCommands.registerCommand("simple", Commands.run(()->{System.out.println("hello world");},ballSubsystem));
     // ************************************
 
