@@ -145,11 +145,11 @@ public class RobotContainer {
     // B BUTTON: AGITATE
     m_operatorController.b().whileTrue(agitator.runWhileHelCommand());
 
-    // POV LEFT : SLOW MO - slow down the feeder 50%
+    // POV LEFT : SLOW MO - slow down the shooter 25%
     // ************************************
     m_operatorController.povLeft()
         .onTrue(Commands.runOnce(() -> {
-          shooter_speedScale = 0.2;
+          shooter_speedScale = 0.75;
           ballSubsystem.setFeederScale(shooter_speedScale);
           shooter_speedScaleEntry.setDouble(shooter_speedScale);  // write the speed scale to the network tables
           //slowModeEntry.setBoolean(true);
