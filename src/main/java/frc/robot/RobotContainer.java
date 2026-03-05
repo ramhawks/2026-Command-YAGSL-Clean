@@ -128,15 +128,15 @@ public class RobotContainer {
     final AgitatorRelay agitator = new AgitatorRelay(Constants.FuelConstants.AGITATOR_CHANNEL_ID);
 
     Command shootCmd = Commands.sequence(
-      // Spin-up the feeder and launcher
-      // ballSubsystem.spinUpCommand().until(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
-      // This sequence pauses until launcherAtSpeed() returns true. If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
-      
+      // Spin-up the feeder and launcher until launcherAtSpeed() returns true If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
+      ballSubsystem.spinUpCommand().until(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+        
       // This command has no timeout, it keeps running as long as the bumper is held (or until interrupted by something else that requires the same subsystem).
       ballSubsystem.launchCommand()
     );
     
-    m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());      
+    m_operatorController.rightBumper().whileTrue(shootCmd);
+    //m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake and run the agitator
