@@ -51,6 +51,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here
   private final SwerveSubsystem m_swerveSubsystem;
   private final CANFuelSubsystem ballSubsystem = new CANFuelSubsystem();
+  private final AgitatorRelay agitator = new AgitatorRelay(Constants.FuelConstants.AGITATOR_CHANNEL_ID);
   
   // The driver's controller
   private final CommandXboxController m_driverController = new CommandXboxController(DriverConstants.kDriverControllerPort);
@@ -125,7 +126,6 @@ public class RobotContainer {
     
     // RIGHT BUMPER: SHOOT    
     // While the right bumper on the operator controller is held, spin up for 1 second, then launch fuel. When the button is released, stop.
-    final AgitatorRelay agitator = new AgitatorRelay(Constants.FuelConstants.AGITATOR_CHANNEL_ID);
 
     Command shootCmd = Commands.sequence(
       // Spin-up the feeder and launcher until launcherAtSpeed() returns true If it doesn’t become true within 1.5 seconds, the wait step ends anyway (timeout).
@@ -135,8 +135,8 @@ public class RobotContainer {
       ballSubsystem.launchCommand()
     );
     
-    m_operatorController.rightBumper().whileTrue(shootCmd);
-    //m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());
+    //m_operatorController.rightBumper().whileTrue(shootCmd);
+    m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake and run the agitator
@@ -340,6 +340,7 @@ public class RobotContainer {
     // );
     
     NamedCommands.registerCommand("AutoBotHub", ballSubsystem.launchCommand());
+    NamedCommands.registerCommand("Agitator", agitator.runWhileHelCommand().withTimeout(5));
     //NamedCommands.registerCommand("simple", Commands.run(()->{System.out.println("hello world");},ballSubsystem));
     // ************************************
 
