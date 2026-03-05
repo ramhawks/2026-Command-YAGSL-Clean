@@ -135,8 +135,8 @@ public class RobotContainer {
       ballSubsystem.launchCommand()
     );
     
-    m_operatorController.rightBumper().whileTrue(shootCmd);
-    //m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());
+    //m_operatorController.rightBumper().whileTrue(shootCmd);
+    m_operatorController.rightBumper().whileTrue(ballSubsystem.launchCommand());
 
     // A BUTTON: REVERSE INTAKE (EJECT)
     // While the A button is held on the operator controller, eject fuel back out the intake and run the agitator
