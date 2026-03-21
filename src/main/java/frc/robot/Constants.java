@@ -17,6 +17,20 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
   public static final double MAX_SPEED  = Units.feetToMeters(14.5);
   public static final String SWERVE_DIR = "deploy/swerve/neo";
+
+  public static class VisionConstants {
+    // Camera offsets
+    public static final String LIMELIGHT_NAME = "limelight";
+
+    // Measured from robot center (= Pigeon 2 location) to camera
+    // Update these once you physically measure your mount
+    public static final double LL_FORWARD_METERS = 0.30;   // toward front
+    public static final double LL_RIGHT_METERS   = 0.0;    // centered
+    public static final double LL_UP_METERS      = 0.50;   // height
+    public static final double LL_PITCH_DEG      = 15.0;   // tilt down
+    public static final double LL_YAW_DEG        = 0.0;    // straight ahead
+    public static final double LL_ROLL_DEG       = 0.0;
+  }
   
   public static class OperatorConstants {
     public static final int kOperatorControllerPort = 0;

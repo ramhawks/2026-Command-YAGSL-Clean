@@ -6,9 +6,6 @@ package frc.robot;
 
 import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.DriveDistance;
-import frc.robot.commands.AutoBotHub;
 import frc.robot.subsystems.AgitatorRelay;
 import frc.robot.subsystems.CANFuelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -18,17 +15,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -39,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -118,6 +110,16 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    // *********  ROBOT MODE TRIGGERS  *********
+    // AUTONOMOUS START: Zero gyro with alliance correction
+    // This runs once when auto period begins, setting yaw=0 facing the red alliance wall
+    // (WPILib blue-origin convention required by MegaTag2)
+    // MegaTag2 is Limelight's robot localization algorithm which uses AprilTags as landmarks.
+    // MegaTag2 turns the raw data from AprilTags into field positions.
+    RobotModeTriggers.autonomous().onTrue(
+        Commands.runOnce(m_swerveSubsystem::zeroGyroWithAlliance)
+    );
+    
     // *********  OPERATOR CONTROLS  *********
     // LEFT BUMPER: INTAKE
     // While the left bumper on operator controller is held, intake Fuel at the default speed. When the button is released, stop.
