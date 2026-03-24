@@ -6,9 +6,7 @@ package frc.robot;
 
 import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.DriveDistance;
-import frc.robot.commands.AutoBotHub;
+import frc.robot.commands.AimAtHubCommand;
 import frc.robot.subsystems.AgitatorRelay;
 import frc.robot.subsystems.CANFuelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -16,19 +14,16 @@ import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -39,7 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -102,6 +96,10 @@ public class RobotContainer {
     // Add buildTestCommand(): Drive foward 2 meters, turn 360 degrees, then shoot for 3 seconds.
     autoChooser.addOption("Test: Forward 2m + turn 360 + shoot 3s", buildTestCommand());
 
+    autoChooser.addOption("Drive To Hub", m_swerveSubsystem.driveToPose(
+        new Pose2d(1.5, 0.0, Rotation2d.fromDegrees(0))
+    ));
+
     // Write initial values to the Network Tables.
     speedScaleEntry.setDouble(speedScale);
     slowModeEntry.setBoolean(false);
@@ -118,6 +116,16 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
+    // *********  ROBOT MODE TRIGGERS  *********
+    // AUTONOMOUS START: Zero gyro with alliance correction
+    // This runs once when auto period begins, setting yaw=0 facing the red alliance wall
+    // (WPILib blue-origin convention required by MegaTag2)
+    // MegaTag2 is Limelight's robot localization algorithm which uses AprilTags as landmarks.
+    // MegaTag2 turns the raw data from AprilTags into field positions.
+    RobotModeTriggers.autonomous().onTrue(
+        Commands.runOnce(m_swerveSubsystem::zeroGyroWithAlliance)
+    );
+    
     // *********  OPERATOR CONTROLS  *********
     // LEFT BUMPER: INTAKE
     // While the left bumper on operator controller is held, intake Fuel at the default speed. When the button is released, stop.
@@ -315,10 +323,12 @@ public class RobotContainer {
           double vx = MathUtil.clamp(output, -1.5, 1.5);
 
           m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds(vx, 0.0, 0.0));
-          distancePid.close();
         },
         // end
-        (interrupted) -> m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds()),
+        (interrupted) -> {
+          m_swerveSubsystem.setChassisSpeeds(new ChassisSpeeds());
+          distancePid.close();
+        },
         // isFinished
         () -> distancePid.atSetpoint(),
         // requirements
@@ -330,23 +340,17 @@ public class RobotContainer {
     // Register any commands that you want to be able to call from PathPlanner paths here. This allows you to use the AutoBuilder
     // to create autonomous commands from PathPlanner paths that can call these named commands.
     // PRO TIP: If the command grows beyond 3 to 5 lines or it will re-used, promote it to it's own class under commands
-
-    // *********  AutoBotHub  *********
-    // Command for shooting FUEL into the hub during autonomous.
-    // Command autoBotHub = Commands.sequence(
-    //   ballSubsystem.spinUpCommand(),
-    //   Commands.waitUntil(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
-    //   ballSubsystem.launchCommand().withTimeout(0.75)
-    // );
     
     NamedCommands.registerCommand("AutoBotHub", ballSubsystem.launchCommand());
     NamedCommands.registerCommand("Agitator", agitator.runWhileHelCommand().withTimeout(5));
-    //NamedCommands.registerCommand("simple", Commands.run(()->{System.out.println("hello world");},ballSubsystem));
-    // ************************************
+    
+    // Define where in front of the hub you want to stop
+    // X, Y = position in meters relative to your field layout origin
+    // Rotation = the angle the robot should face when it arrives
+    Pose2d hubShootingPose = new Pose2d(1.5, 0.0, Rotation2d.fromDegrees(0));
+    Command driveToHub = m_swerveSubsystem.driveToPose(hubShootingPose);
+    NamedCommands.registerCommand("DriveToHub", driveToHub);
 
-    // **********  SomeCommand  *********
-    // Command for...
-    // Code goes here.
-    // *********************************
+    NamedCommands.registerCommand("AimAtHub", new AimAtHubCommand(m_swerveSubsystem));
   }
 }

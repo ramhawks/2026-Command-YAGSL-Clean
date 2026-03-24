@@ -39,6 +39,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import frc.robot.Constants;
+import frc.robot.Constants.VisionConstants;
+import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.swervedrive.Vision.Cameras;
 
 import java.io.File;
@@ -112,7 +114,6 @@ public class SwerveSubsystem extends SubsystemBase
       //     Meter.of(1), 
       //     Meter.of(4)), 
       //   Rotation2d.fromDegrees(0));
-      System.out.println("Starting Pose: " + startingPose);
       swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.MAX_SPEED, startingPose);
       // swerveDrive.resetOdometry(startingPose);
       
@@ -131,12 +132,25 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.setModuleEncoderAutoSynchronize(false,
                                                 1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
+
+    // set camera pose once
+    LimelightHelpers.setCameraPose_RobotSpace(
+      VisionConstants.LIMELIGHT_NAME,
+      VisionConstants.LL_FORWARD_METERS,
+      VisionConstants.LL_RIGHT_METERS,
+      VisionConstants.LL_UP_METERS,
+      VisionConstants.LL_ROLL_DEG,
+      VisionConstants.LL_PITCH_DEG,
+      VisionConstants.LL_YAW_DEG
+    );
+    
     if (visionDriveTest)
     {
       setupPhotonVision();
       // Stop the odometry thread if we are using vision that way we can synchronize updates better.
       swerveDrive.stopOdometryThread();
     }
+    
     setupPathPlanner();
   }
 
@@ -183,6 +197,38 @@ public class SwerveSubsystem extends SubsystemBase
     fVxEntry.setDouble(fieldVel.vxMetersPerSecond);
     fVyEntry.setDouble(fieldVel.vyMetersPerSecond);
     fOmegaEntry.setDouble(fieldVel.omegaRadiansPerSecond);
+
+    // Feed Pigeon 2 yaw to Limelight EVERY loop — required for MegaTag2
+    // YAGSL exposes the gyro heading via swerveDrive.getYaw()
+    LimelightHelpers.SetRobotOrientation(
+        VisionConstants.LIMELIGHT_NAME,
+        swerveDrive.getYaw().getDegrees(),
+        0, 0, 0, 0, 0
+    );
+
+    // Get MegaTag2 pose estimate
+    LimelightHelpers.PoseEstimate mt2 =
+        LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(VisionConstants.LIMELIGHT_NAME);
+
+    boolean rejectUpdate = false;
+
+    // Reject if spinning too fast (> 360 deg/s)
+    if (Math.abs(swerveDrive.getGyro().getYawAngularVelocity().in(
+            edu.wpi.first.units.Units.DegreesPerSecond)) > 360) {
+        rejectUpdate = true;
+    }
+
+    // Reject if no tags visible
+    if (mt2 == null || mt2.tagCount == 0) {
+        rejectUpdate = true;
+    }
+
+    if (!rejectUpdate) {
+        swerveDrive.addVisionMeasurement(
+            mt2.pose,
+            mt2.timestampSeconds
+        );
+    }
 
     // When vision is enabled, manually sync odometry with vision processing. This ensures the robot's Pose (position on field) is accurate.
     if (visionDriveTest) {
