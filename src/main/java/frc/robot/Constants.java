@@ -24,10 +24,10 @@ public final class Constants {
 
     // Measured from robot center (= Pigeon 2 location) to camera
     // Update these once you physically measure your mount
-    public static final double LL_FORWARD_METERS = 0.30;   // toward front
-    public static final double LL_RIGHT_METERS   = 0.0;    // centered
-    public static final double LL_UP_METERS      = 0.50;   // height
-    public static final double LL_PITCH_DEG      = 15.0;   // tilt down
+    public static final double LL_FORWARD_METERS = 0.344;   // toward front
+    public static final double LL_RIGHT_METERS   = 0.192;    // centered
+    public static final double LL_UP_METERS      = 0.52;   // height
+    public static final double LL_PITCH_DEG      = 0.0;   // tilt down
     public static final double LL_YAW_DEG        = 0.0;    // straight ahead
     public static final double LL_ROLL_DEG       = 0.0;
   }
