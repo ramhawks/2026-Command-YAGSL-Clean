@@ -7,6 +7,7 @@ package frc.robot;
 import frc.robot.Constants.DriverConstants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.AimAtHubCommand;
+import frc.robot.commands.DriveToTargetCommand;
 import frc.robot.subsystems.AgitatorRelay;
 import frc.robot.subsystems.CANFuelSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -189,6 +190,14 @@ public class RobotContainer {
           slowModeEntry.setBoolean(false);
         }));
 
+    // Y BUTTON: DRIVE → AIM → SHOOT (vision-assisted)
+    // Hold Y to run the full sequence:
+    //   1. Drive forward until the Limelight detects the AprilTag (max 10 s)
+    //   2. Rotate in place until aligned with the tag (tx within tolerance)
+    //   3. Spin up launcher then shoot for up to 3 seconds
+    // Releasing Y mid-sequence cancels everything and stops the robot.
+    m_driverController.y().whileTrue(buildDriveAimShootCommand());
+
     // DRIVE COMMANDS
     // TESTING
     // Robot-centric drive command for testing and tuning the swerve drive.
@@ -296,6 +305,28 @@ public class RobotContainer {
     );
 
     return testAuto;
+  }
+
+  /**
+   * Builds the full vision-assisted drive → aim → shoot sequence.
+   *
+   * Step 1: Drive forward until the Limelight sees the AprilTag (10 s timeout).
+   * Step 2: Rotate in place until tx is within tolerance (AimAtHubCommand).
+   * Step 3: Spin up the launcher, then shoot for up to 3 seconds.
+   *
+   * Bind with whileTrue() so releasing the button cancels the sequence.
+   */
+  private Command buildDriveAimShootCommand() {
+    Command driveToTarget = new DriveToTargetCommand(m_swerveSubsystem).withTimeout(10.0);
+
+    Command aimAtTarget = new AimAtHubCommand(m_swerveSubsystem);
+
+    Command shoot = Commands.sequence(
+        ballSubsystem.spinUpCommand().until(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
+        ballSubsystem.launchCommand().withTimeout(3.0)
+    );
+
+    return Commands.sequence(driveToTarget, aimAtTarget, shoot);
   }
 
   private Command createDriveForwardMetersCommand(double meters) {
