@@ -152,7 +152,7 @@ public class RobotContainer {
     m_operatorController.a().whileTrue(ballSubsystem.ejectCommand());
     
     // B BUTTON: AGITATE
-    m_operatorController.b().whileTrue(agitator.runWhileHelCommand());
+    m_operatorController.b().whileTrue(agitator.runWhileHeldCommand());
 
     // POV LEFT : SLOW MO - slow down the shooter 25%
     // ************************************
@@ -317,16 +317,13 @@ public class RobotContainer {
    * Bind with whileTrue() so releasing the button cancels the sequence.
    */
   private Command buildDriveAimShootCommand() {
-    Command driveToTarget = new DriveToTargetCommand(m_swerveSubsystem).withTimeout(10.0);
-
-    Command aimAtTarget = new AimAtHubCommand(m_swerveSubsystem);
-
-    Command shoot = Commands.sequence(
-        ballSubsystem.spinUpCommand().until(ballSubsystem::launcherAtSpeed).withTimeout(1.5),
-        ballSubsystem.launchCommand().withTimeout(3.0)
+    Command shootSequence = Commands.sequence(
+      new DriveToTargetCommand(m_swerveSubsystem).withTimeout(10.0),
+      new AimAtHubCommand(m_swerveSubsystem),
+      agitator.runDuring(ballSubsystem.launchCommand().withTimeout(3.0))
     );
 
-    return Commands.sequence(driveToTarget, aimAtTarget, shoot);
+    return shootSequence;
   }
 
   private Command createDriveForwardMetersCommand(double meters) {

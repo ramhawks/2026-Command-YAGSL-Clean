@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -57,8 +58,10 @@ public class DriveToTargetCommand extends Command {
         SmartDashboard.putBoolean("DriveToTarget/HasTarget", hasTarget);
 
         if (!hasTarget) {
-            // No tag yet — keep driving forward (robot-relative vx)
-            swerve.setChassisSpeeds(new ChassisSpeeds(DRIVE_SPEED_MPS, 0.0, 0.0));
+            // No tag yet — keep driving forward (robot-relative).
+            // Using drive() instead of setChassisSpeeds() so YAGSL's internal
+            // heading correction PID keeps the robot going straight.
+            swerve.drive(new Translation2d(DRIVE_SPEED_MPS, 0.0), 0.0, false);
         } else {
             // Tag acquired — stop immediately
             swerve.setChassisSpeeds(new ChassisSpeeds());

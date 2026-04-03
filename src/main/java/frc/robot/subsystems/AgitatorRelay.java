@@ -21,16 +21,11 @@ public class AgitatorRelay extends SubsystemBase {
         relay.set(Relay.Value.kOff);
     }
 
-    public Command runWhileHelCommand() {
+    public Command runWhileHeldCommand() {
         return this.runEnd(this::on, this::off);
     }
 
     public Command runDuring(Command other) {
-        return other.deadlineWith(runWhileHelCommand());
+        return other.deadlineWith(runWhileHeldCommand());
     }
-
-    // Run the Agitator 3000 for a finite period of time
-    // public Command runSetIntervalCommand(int fraction) {
-    //     return null;
-    // }
 }
