@@ -69,7 +69,7 @@ end()         -->  Stop the robot; print whether we found a target or timed out
 boolean hasTarget = LimelightHelpers.getTV(VisionConstants.LIMELIGHT_NAME);
 
 if (!hasTarget) {
-    swerve.setChassisSpeeds(new ChassisSpeeds(DRIVE_SPEED_MPS, 0.0, 0.0));
+    swerve.drive(new Translation2d(DRIVE_SPEED_MPS, 0.0), 0.0, false);
 } else {
     swerve.setChassisSpeeds(new ChassisSpeeds());
 }
@@ -85,7 +85,7 @@ if the tag is never found.
 
 ### ChassisSpeeds(vx, vy, omega) VS. swerve.drive(new Translation2d(vx, vy), omega, false)
 
-What is the difference between ChassisSpeeds(vx, vy, omega) and drive(Translation2d translation, double rotation, boolean fieldRelative)?
+**What is the difference between ChassisSpeeds(vx, vy, omega) and drive(Translation2d translation, double rotation, boolean fieldRelative)?**
 
 Both move the robot, but speak different "languages" to the drivetrain:
 
@@ -96,6 +96,10 @@ This method takes a velocity directly — you hand it exact m/s values for X, Y,
 **swerve.drive(Translation2d translation, double rotation, boolean fieldRelative)**
 
 This method is a higher-level YAGSL method. Under the hood it does extra work before sending speeds to the modules — it applies your configured speed limits, handles field-relative rotation math using the gyro heading, and feeds through YAGSL's internal velocity processing pipeline. This is what your default teleop drive command uses internally.
+
+**Can I mix them?**
+
+Mixing them in the same routine can cause unexpected behavior since one respects your configured limits and the other doesn't. Think about what you're trying to do before you decide.
 
 ### What to watch on SmartDashboard:
 - `DriveToTarget/HasTarget` — turns `true` the moment the tag is spotted
