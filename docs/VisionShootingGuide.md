@@ -83,18 +83,17 @@ if (!hasTarget) {
 A 10-second timeout is applied externally so the robot does not drive forever
 if the tag is never found.
 
-```
-ChassisSpeeds(vx, vy, omega) VS. swerve.drive(new Translation2d(vx, vy), 0.0, false);
-```
+### ChassisSpeeds(vx, vy, omega) VS. swerve.drive(new Translation2d(vx, vy), omega, false)
+
 What is the difference between ChassisSpeeds(vx, vy, omega) and drive(Translation2d translation, double rotation, boolean fieldRelative)?
 
-Both move the robot, but they speak different "languages" to the drivetrain:
+Both move the robot, but speak different "languages" to the drivetrain:
 
 **ChassisSpeeds(vx, vy, omega)**
 
 This method takes a velocity directly — you hand it exact m/s values for X, Y, and rotation. It's a low-level, direct command with no processing in between. You tell it exactly what speed you want and it does it.
 
-**drive(Translation2d translation, double rotation, boolean fieldRelative)**
+**swerve.drive(Translation2d translation, double rotation, boolean fieldRelative)**
 
 This method is a higher-level YAGSL method. Under the hood it does extra work before sending speeds to the modules — it applies your configured speed limits, handles field-relative rotation math using the gyro heading, and feeds through YAGSL's internal velocity processing pipeline. This is what your default teleop drive command uses internally.
 
