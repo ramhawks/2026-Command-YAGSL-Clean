@@ -75,6 +75,11 @@ if (!hasTarget) {
 }
 ```
 
+`swerve.drive(new Translation2d(vx, vy), omega, fieldRelative)` tells the swerve drive how to move:
+- `Translation2d(vx, vy)` = the direction and speed you want the robot to move
+- `omega` = rotation speed in radians per second (0 = no rotation)
+- `fieldRelative` = controls what "forward" means (true means far end of the field, false means front of the robot)
+
 `ChassisSpeeds(vx, vy, omega)` tells the swerve drive how to move:
 - `vx` = forward/backward speed in meters per second
 - `vy` = left/right strafe speed (0 = no strafe)
