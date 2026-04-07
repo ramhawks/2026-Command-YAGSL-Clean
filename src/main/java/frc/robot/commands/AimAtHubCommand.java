@@ -104,7 +104,7 @@ public class AimAtHubCommand extends Command {
 
         // Proportional rotation output
         // Negative because: positive tx (target right) → rotate right (negative omega in WPILib)
-        double rawOutput = -kP * tx;
+        //double rawOutput = -kP * tx;
 
         // *********** CODE FIX ******************
         // Positive tx = tag is to the RIGHT → rotate right (positive omega in WPILib CCW-positive)
@@ -112,7 +112,7 @@ public class AimAtHubCommand extends Command {
         // With invertIMU = false, positive omega = counter-clockwise = turning left
         // So: when the tag is on the right (positive tx) needs clockwise = negative omega → keep the negative
         // BUT if your robot currently goes the WRONG way, flip to: kP * tx
-        //double rawOutput = kP * tx; //removed sign
+        double rawOutput = kP * tx; //removed sign
         // *********** END CODE FIX **************
 
         // Apply minimum output to overcome friction, preserving direction
